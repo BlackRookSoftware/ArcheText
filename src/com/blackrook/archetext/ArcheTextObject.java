@@ -10,6 +10,8 @@ import com.blackrook.commons.linkedlist.Stack;
  */
 public class ArcheTextObject
 {
+	
+	
 	/**
 	 * ArcheText object internal types.
 	 */
@@ -67,6 +69,15 @@ public class ArcheTextObject
 			throw new IllegalArgumentException("type cannot be empty if the name is.");
 		this.type = type;
 		this.name = name;
+	}
+	
+	/**
+	 * Creates a new ArcheTextObject with a type and name.
+	 */
+	public static <T> ArcheTextObject create(T value)
+	{
+		// TODO: Finish.
+		return null;
 	}
 	
 	/**
