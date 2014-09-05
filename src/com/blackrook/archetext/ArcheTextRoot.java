@@ -1,5 +1,6 @@
 package com.blackrook.archetext;
 
+import com.blackrook.commons.AbstractVector;
 import com.blackrook.commons.Common;
 import com.blackrook.commons.hash.HashMap;
 
@@ -173,6 +174,15 @@ public class ArcheTextRoot
 		return false;
 	}
 	
-	
+	/**
+	 * 
+	 * @param type
+	 * @return
+	 */
+	public AbstractVector<ArcheTextObject> getAllByType(String type)
+	{
+		// TODO: Finish.
+		return null;
+	}
 	
 }

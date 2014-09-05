@@ -1,5 +1,6 @@
 package com.blackrook.archetext;
 
+import com.blackrook.archetext.ArcheTextValue.Combinator;
 import com.blackrook.commons.Common;
 import com.blackrook.commons.linkedlist.Stack;
 
@@ -10,27 +11,6 @@ import com.blackrook.commons.linkedlist.Stack;
  */
 public class ArcheTextObject
 {
-	
-	
-	/**
-	 * ArcheText object internal types.
-	 */
-	public static enum Type
-	{
-		/** Boolean type. */
-		BOOLEAN,
-		/** Numeric type. */
-		NUMBER,
-		/** String type. */
-		STRING,
-		/** Array type. Stored as ArcheTextObject[]. */
-		ARRAY,
-		/** Set type. Stored as Hash<ArcheTextObject>. */
-		SET,
-		/** Object type for objects, or null. Stored as HashMap<String, ArcheTextObject>, or null. */
-		OBJECT;
-	}
-
 	/** Object type. */
 	private String type;
 	/** Object name. */
@@ -38,11 +18,6 @@ public class ArcheTextObject
 	
 	/** Object hierarchy parents. */
 	private Stack<ArcheTextObject> parents;
-
-	/** Object value type. */
-	private Type valueType;
-	/** Object internal value. */
-	private Object value;
 
 	/**
 	 * Creates a new anonymous ArcheTextObject.
@@ -72,7 +47,9 @@ public class ArcheTextObject
 	}
 	
 	/**
-	 * Creates a new ArcheTextObject with a type and name.
+	 * Creates a new anonymous ArcheTextObject using a POJO (Plain Ol' Java Object).
+	 * Primitives, boxed primitives, Sets, and Arrays are not acceptable.
+	 * @throws IllegalArgumentException if value is not a POJO.
 	 */
 	public static <T> ArcheTextObject create(T value)
 	{
@@ -105,22 +82,6 @@ public class ArcheTextObject
 	}
 
 	/**
-	 * Returns the value type.
-	 */
-	public Type getValueType()
-	{
-		return valueType;
-	}
-
-	/**
-	 * Returns the value.
-	 */
-	public Object getValue()
-	{
-		return value;
-	}
-
-	/**
 	 * Returns true if this object has no type nor name.
 	 */
 	public boolean isAnonymous()
@@ -137,7 +98,8 @@ public class ArcheTextObject
 	}
 
 	/**
-	 * Pushes a parent onto the parent stack.
+	 * Pushes a parent onto the top of the parent stack.
+	 * The new parent is now the highest priority for inheritance.
 	 * @param parent the parent to push.
 	 */
 	public void pushParent(ArcheTextObject parent)
@@ -145,6 +107,18 @@ public class ArcheTextObject
 		if (parents == null)
 			parents = new Stack<ArcheTextObject>();
 		parents.push(parent);
+	}
+
+	/**
+	 * Adds a parent to this object.
+	 * The new parent is now the lowest priority for inheritance.
+	 * @param parent the parent to add.
+	 */
+	public void addParent(ArcheTextObject parent)
+	{
+		if (parents == null)
+			parents = new Stack<ArcheTextObject>();
+		parents.add(parent);
 	}
 
 	/**
@@ -162,6 +136,16 @@ public class ArcheTextObject
 		return out;
 	}
 	
+	/**
+	 * Adds the fields and lineage from another object to this object.
+	 * NOTE: Field {@link Combinator}s from the object getting added come into effect when setting
+	 * the values in this object.
+	 * @param addend the object to add to this one.
+	 */
+	public void combine(ArcheTextObject addend)
+	{
+		//TODO: Finish.
+	}
 	
 	// TODO: Add set value and get value (and get-value-as).
 	
