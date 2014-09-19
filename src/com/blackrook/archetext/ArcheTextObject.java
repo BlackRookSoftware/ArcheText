@@ -1,7 +1,18 @@
 package com.blackrook.archetext;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.Iterator;
+
 import com.blackrook.archetext.ArcheTextValue.Combinator;
+import com.blackrook.archetext.annotation.ArcheTextIgnore;
 import com.blackrook.commons.Common;
+import com.blackrook.commons.ObjectPair;
+import com.blackrook.commons.Reflect;
+import com.blackrook.commons.ResettableIterator;
+import com.blackrook.commons.TypeProfile;
+import com.blackrook.commons.TypeProfile.MethodSignature;
+import com.blackrook.commons.hash.HashMap;
 import com.blackrook.commons.linkedlist.Stack;
 
 /**
@@ -18,6 +29,8 @@ public class ArcheTextObject
 	
 	/** Object hierarchy parents. */
 	private Stack<ArcheTextObject> parents;
+	/** Object local fields. */
+	private HashMap<String, ArcheTextValue> fields;
 
 	/**
 	 * Creates a new anonymous ArcheTextObject.
@@ -44,17 +57,6 @@ public class ArcheTextObject
 			throw new IllegalArgumentException("type cannot be empty if the name is.");
 		this.type = type;
 		this.name = name;
-	}
-	
-	/**
-	 * Creates a new anonymous ArcheTextObject using a POJO (Plain Ol' Java Object).
-	 * Primitives, boxed primitives, Sets, and Arrays are not acceptable.
-	 * @throws IllegalArgumentException if value is not a POJO.
-	 */
-	public static <T> ArcheTextObject create(T value)
-	{
-		// TODO: Finish.
-		return null;
 	}
 	
 	/**
@@ -137,16 +139,205 @@ public class ArcheTextObject
 	}
 	
 	/**
-	 * Adds the fields and lineage from another object to this object.
-	 * NOTE: Field {@link Combinator}s from the object getting added come into effect when setting
-	 * the values in this object.
-	 * @param addend the object to add to this one.
+	 * Sets the value of a field.
+	 * Equivalent to <code>setField(name, Combinator.SET, value)</code>.
+	 * @param name the name of the field to set.
+	 * @param value the value of the field.
 	 */
-	public void combine(ArcheTextObject addend)
+	public void setField(String name, Object value)
 	{
-		//TODO: Finish.
+		setField(name, Combinator.SET, value);
 	}
 	
-	// TODO: Add set value and get value (and get-value-as).
+	/**
+	 * Sets the value of a field.
+	 * @param name the name of the field to set.
+	 * @param combinator the value combinator for field inheritance.
+	 * @param value the value of the field.
+	 */
+	public void setField(String name, Combinator combinator, Object value)
+	{
+		if (fields == null)
+			fields = new HashMap<String, ArcheTextValue>();
+		fields.put(name, ArcheTextValue.create(combinator, value));
+	}
+	
+	/**
+	 * Sets the value of a field.
+	 */
+	private void setField(String name, ArcheTextValue value)
+	{
+		if (fields == null)
+			fields = new HashMap<String, ArcheTextValue>();
+		fields.put(name, value);
+	}
+	
+	/**
+	 * Clears the value of a field.
+	 * @param name the name of the field to clear.
+	 */
+	public void clearField(String name)
+	{
+		if (fields == null)
+			return;
+		fields.removeUsingKey(name);
+		if (fields.isEmpty())
+			fields = null;
+	}
+	
+	/**
+	 * Gets the value of a local field.
+	 * The field's value is taken from THIS OBJECT, not its parents.
+	 * @param name the name of the field.
+	 * @return the value converted to the desired type.
+	 */
+	public <T> T getLocalField(String name, Class<T> outputType)
+	{
+		if (fields == null)
+			return Reflect.createForType(null, outputType);
+
+		ArcheTextValue value = fields.get(name);
+		if (value == null)
+			return Reflect.createForType(null, outputType);
+		else
+			return Reflect.createForType(value.getValue(), outputType);
+	}
+	
+	/**
+	 * Gets the native value of a local field.
+	 * The field's value is taken from THIS OBJECT, not its parents.
+	 * @param name the name of the field.
+	 */
+	protected ArcheTextValue getLocalValue(String name)
+	{
+		if (fields == null)
+			return null;
+		return fields.get(name);
+	}
+	
+	/**
+	 * Gets the value of a local field.
+	 * The field's value is taken from THIS OBJECT, not its parents.
+	 * @param name the name of the field.
+	 * @return the value converted to the desired type.
+	 */
+	public <T> T getField(String name, Class<T> outputType)
+	{
+		return Reflect.createForType(recurseValue(name, this).getValue(), outputType); 
+	}
+	
+	// recursively finds the correct value.
+	private static ArcheTextValue recurseValue(String name, ArcheTextObject atobject)
+	{
+		ArcheTextValue out = atobject.getLocalValue(name);
+		if (out != null && out.getCombinator() == Combinator.SET)
+			return out.copy();
+		
+		for (ArcheTextObject parent : atobject.parents)
+			out = out != null ? out.combineWith(recurseValue(name, parent)) : recurseValue(name, parent);
+		
+		return out;
+	}
+	
+	/**
+	 * Adds the fields and lineage from another object to this object.
+	 * NOTE: Field {@link Combinator}s from the object getting added 
+	 * come into effect when setting the values in this object.
+	 * @param addend the object to add to this one.
+	 */
+	public void cascade(ArcheTextObject addend)
+	{
+		for (ArcheTextObject parent : addend.parents)
+			this.parents.add(parent);
+		
+		Iterator<String> fieldNames = addend.fieldNameIterator();
+		while (fieldNames.hasNext())
+		{
+			String fname = fieldNames.next();
+			setField(fname, addend.getLocalValue(fname).combineWith(getLocalValue(fname)));
+		}
+	}
+	
+	/**
+	 * Applies this object to an object bean / plain ol' Java object, or Array.
+	 * <p>
+	 * This JSON object is applied via the target object's public fields
+	 * and setter methods, if an object.
+	 * <p>
+	 * For instance, if there is a member on this object called "color", its value
+	 * will be applied via the public field "color" or the setter "setColor()". Public
+	 * fields take precedence over setters.
+	 * @param object the target object.
+	 * @return the applied object itself.
+	 */
+	@SuppressWarnings("unchecked")
+	public <T extends Object> T applyToObject(T object)
+	{
+		TypeProfile<T> profile = TypeProfile.getTypeProfile((Class<T>)object.getClass());
+		Iterator<String> it = fieldNameIterator();
+		while (it.hasNext())
+		{
+			String member = it.next();
+			Field field = null; 
+			MethodSignature setter = null;
+			if ((field = profile.getPublicFields().get(member)) != null)
+			{
+				if (!field.isAnnotationPresent(ArcheTextIgnore.class))
+				{
+					Class<?> type = field.getType();
+					Reflect.setField(object, member, getField(member, type));
+				}
+			}
+			else if ((setter = profile.getSetterMethods().get(member)) != null)
+			{
+				if (!setter.getMethod().isAnnotationPresent(ArcheTextIgnore.class))
+				{
+					Class<?> type = setter.getType();
+					Method method = setter.getMethod();
+					Reflect.invokeBlind(method, object, getField(member, type));
+				}
+			}			
+		}
+		
+		return object;
+	}
+	
+	/**
+	 * Returns a field name iterator for this object (only local fields).
+	 */
+	public ResettableIterator<String> fieldNameIterator()
+	{
+		return fields.keyIterator();
+	}
+	
+	@Override
+	public String toString()
+	{
+		StringBuilder sb = new StringBuilder();
+		
+		if (isAnonymous())
+			sb.append("[ANONYMOUS] ");
+		else if (isDefault())
+			sb.append(type).append(' ');
+		else
+			sb.append(type).append(' ').append('"').append(name).append('"').append(' ');
+		
+		if (parents != null) for (ArcheTextObject parent : parents)
+		{
+			sb.append(": ");
+			if (isDefault())
+				sb.append(parent.type).append(' ');
+			else
+				sb.append(parent.type).append(' ').append('"').append(parent.name).append('"').append(' ');
+		}
+
+		sb.append("{ ");
+
+		if (fields != null) for (ObjectPair<String, ArcheTextValue> pair : fields)
+			sb.append(pair.getKey()).append(' ').append(pair.getValue()).append("; ");
+		
+		sb.append("}");
+		return sb.toString();
+	}
 	
 }

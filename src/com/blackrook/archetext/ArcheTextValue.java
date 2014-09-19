@@ -42,66 +42,68 @@ public class ArcheTextValue
 	 */
 	public static enum Combinator
 	{
-		SET
+		SET("=")
 		{
 			@Override
-			public ArcheTextValue combine(ArcheTextValue base, ArcheTextValue operand)
+			public ArcheTextValue combine(ArcheTextValue operand, ArcheTextValue target)
 			{
-				return operand;
+				return operand != null ? operand.copy() : null;
 			}
 		},
 		
-		ADD
+		ADD("+=")
 		{
 			@Override
 			@SuppressWarnings("unchecked")
-			public ArcheTextValue combine(ArcheTextValue base, ArcheTextValue operand)
+			public ArcheTextValue combine(ArcheTextValue operand, ArcheTextValue target)
 			{
-				if (base == null)
+				if (target == null)
 					return operand.copy();
 				
-				if (base.type.compareTo(operand.type) < 0)
-					base = base.promoteTo(operand.type);
-				else if (base.type.compareTo(operand.type) > 0)
-					operand = operand.promoteTo(base.type);
+				target = target.copy();
+				
+				if (target.type.compareTo(operand.type) < 0)
+					target = target.promoteTo(operand.type);
+				else if (target.type.compareTo(operand.type) > 0)
+					operand = operand.promoteTo(target.type);
 				
 				switch (operand.type)
 				{
 					case BOOLEAN:
-						return new ArcheTextValue(Type.BOOLEAN, base.combinator, base.getBoolean() || operand.getBoolean());
+						return new ArcheTextValue(Type.BOOLEAN, target.combinator, target.getBoolean() || operand.getBoolean());
 					case INTEGER:
-						return new ArcheTextValue(Type.INTEGER, base.combinator, base.getLong() + operand.getLong());
+						return new ArcheTextValue(Type.INTEGER, target.combinator, target.getLong() + operand.getLong());
 					case FLOAT:
-						return new ArcheTextValue(Type.FLOAT, base.combinator, base.getDouble() + operand.getDouble());
+						return new ArcheTextValue(Type.FLOAT, target.combinator, target.getDouble() + operand.getDouble());
 					case STRING:
-						return new ArcheTextValue(Type.STRING, base.combinator, base.getString() + operand.getString());
+						return new ArcheTextValue(Type.STRING, target.combinator, target.getString() + operand.getString());
 					case SET:
 					{
 						// union
 						Hash<ArcheTextValue> set = new Hash<ArcheTextValue>();
-						for (ArcheTextValue val : (Hash<ArcheTextValue>)base.value)
+						for (ArcheTextValue val : (Hash<ArcheTextValue>)target.value)
 							set.put(val);
 						for (ArcheTextValue val : (Hash<ArcheTextValue>)operand.value)
 							set.put(val);
-						return new ArcheTextValue(Type.SET, base.combinator, set);
+						return new ArcheTextValue(Type.SET, target.combinator, set);
 					}
 					case LIST:
 					{
 						// append
 						List<ArcheTextValue> list = new List<ArcheTextValue>();
-						for (ArcheTextValue val : (List<ArcheTextValue>)base.value)
+						for (ArcheTextValue val : (List<ArcheTextValue>)target.value)
 							list.add(val);
 						for (ArcheTextValue val : (List<ArcheTextValue>)operand.value)
 							list.add(val);
-						return new ArcheTextValue(Type.LIST, base.combinator, list);
+						return new ArcheTextValue(Type.LIST, target.combinator, list);
 					}
 					case OBJECT:
 					{
 						// combine
 						ArcheTextObject object = new ArcheTextObject();
-						object.combine((ArcheTextObject)base.value);
-						object.combine((ArcheTextObject)operand.value);
-						return new ArcheTextValue(Type.LIST, base.combinator, object);
+						object.cascade((ArcheTextObject)target.value);
+						object.cascade((ArcheTextObject)operand.value);
+						return new ArcheTextValue(Type.OBJECT, target.combinator, object);
 					}
 				}
 				
@@ -112,7 +114,19 @@ public class ArcheTextValue
 		;
 		
 		/** Combines two values. */
-		public abstract ArcheTextValue combine(ArcheTextValue base, ArcheTextValue operand);
+		public abstract ArcheTextValue combine(ArcheTextValue me, ArcheTextValue them);
+		
+		private String assignmentOperator;
+		private Combinator(String assignmentOperator)
+		{
+			this.assignmentOperator = assignmentOperator;
+		}
+		
+		/** Returns the assignment operator for this combinator. */
+		public String getAssignmentOperator()
+		{
+			return assignmentOperator;
+		}
 		
 	}
 
@@ -152,7 +166,7 @@ public class ArcheTextValue
 	public static <T> ArcheTextValue create(Combinator combinator, T object)
 	{
 		if (object == null)
-			return null;
+			return new ArcheTextValue(Type.OBJECT, combinator, object);
 		else if (object instanceof ArcheTextObject)
 		{
 			return new ArcheTextValue(Type.OBJECT, combinator, object);
@@ -269,7 +283,7 @@ public class ArcheTextValue
 			{
 				// combine
 				ArcheTextObject object = new ArcheTextObject();
-				object.combine((ArcheTextObject)this.value);
+				object.cascade((ArcheTextObject)this.value);
 				return new ArcheTextValue(Type.OBJECT, this.combinator, object);
 			}
 		}
@@ -287,7 +301,7 @@ public class ArcheTextValue
 	/**
 	 * Gets the value combiner type.
 	 */
-	public Combinator getCombineType()
+	public Combinator getCombinator()
 	{
 		return combinator;
 	}
@@ -300,25 +314,16 @@ public class ArcheTextValue
 		return value;
 	}
 	
-	private boolean getBoolean()
+	/**
+	 * Combines this value with another and returns 
+	 * @param value
+	 * @return
+	 */
+	public ArcheTextValue combineWith(ArcheTextValue value)
 	{
-		return value != null ? ((Boolean)value) : false;  
+		return this.combinator.combine(this, value);
 	}
 	
-	private long getLong()
-	{
-		return value != null ? ((Long)value).longValue() : 0L;  
-	}
-	
-	private double getDouble()
-	{
-		return value != null ? ((Double)value).doubleValue() : 0.0;  
-	}
-	
-	private String getString()
-	{
-		return value != null ? String.valueOf(value) : null;  
-	}
 	
 	/**
 	 * Returns a new ArcheTextValue that is a promoted type
@@ -355,6 +360,26 @@ public class ArcheTextValue
 		}
 	}
 
+	private boolean getBoolean()
+	{
+		return value != null ? ((Boolean)value) : false;  
+	}
+	
+	private long getLong()
+	{
+		return value != null ? ((Long)value).longValue() : 0L;  
+	}
+	
+	private double getDouble()
+	{
+		return value != null ? ((Double)value).doubleValue() : 0.0;  
+	}
+	
+	private String getString()
+	{
+		return value != null ? String.valueOf(value) : null;  
+	}
+	
 	private ArcheTextValue promoteBooleanTo(Type promotionType)
 	{
 		switch (promotionType)
@@ -454,6 +479,13 @@ public class ArcheTextValue
 	private ArcheTextValue promoteArrayTo(Type promotionType)
 	{
 		throw new IllegalArgumentException("YOU SHOULDN'T BE SEEING THIS.");
+	}
+	
+	
+	@Override
+	public String toString()
+	{
+		return combinator.getAssignmentOperator() + " [" + type + ": " + value + "]";
 	}
 	
 }
