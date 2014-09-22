@@ -6,6 +6,7 @@ import java.util.Set;
 
 import com.blackrook.commons.AbstractMap;
 import com.blackrook.commons.AbstractSet;
+import com.blackrook.commons.ObjectPair;
 import com.blackrook.commons.Reflect;
 import com.blackrook.commons.hash.Hash;
 import com.blackrook.commons.list.List;
@@ -191,11 +192,17 @@ public class ArcheTextValue
 		}
 		else if (object instanceof Map<?, ?>)
 		{
-			return new ArcheTextValue(Type.OBJECT, combinator, ArcheTextFactory.create(object));
+			ArcheTextObject ato = new ArcheTextObject();
+			for (Map.Entry<?, ?> pair : ((Map<?, ?>)object).entrySet())
+				ato.setField(String.valueOf(pair.getKey()), Combinator.SET, create(Combinator.SET, pair.getValue()));
+			return new ArcheTextValue(Type.OBJECT, combinator, ato);
 		}
 		else if (object instanceof AbstractMap<?, ?>)
 		{
-			return new ArcheTextValue(Type.OBJECT, combinator, ArcheTextFactory.create(object));
+			ArcheTextObject ato = new ArcheTextObject();
+			for (ObjectPair<?, ?> pair : ((AbstractMap<?, ?>)object))
+				ato.setField(String.valueOf(pair.getKey()), Combinator.SET, create(Combinator.SET, pair.getValue()));
+			return new ArcheTextValue(Type.OBJECT, combinator, ato);
 		}
 		else if (Reflect.isArray(object))
 		{

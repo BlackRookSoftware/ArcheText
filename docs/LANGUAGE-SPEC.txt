@@ -1,0 +1,82 @@
+ArcheType Language Spec
+-----------------------
+
+<ATRoot> :=
+	<ATDeclaration> <ATParentList> <ATBody>
+
+<ATDeclaration> :=
+	<IDENTIFIER> <ATStructName>
+
+<ATStructName> :=
+	<IDENTIFIER>
+	<STRING>
+	[e]
+	
+<ATParentList> :=
+	"<-" <ATDeclaration> <ATParentListPrime>
+	":" <ATDeclaration> <ATParentListPrime>
+	[e]
+
+<ATParentListPrime> :=
+	":" <ATDeclaration> <ATParentListPrime>
+	[e]
+
+<ATBody> :=
+	"{" <ATFieldList> "}"
+	";"
+
+<ATFieldList> :=
+	<IDENTIFIER> <AssignmentOperator> <Expression> ";" <ATFieldList>
+	[e]
+
+<AssignmentOperator> :=
+	"="
+	"+="
+
+<Expression> := [SHIFT-REDUCER]
+
+<Value> :=
+	"{" <ATFieldList> "}"
+	"[" <ArrayBody> "]"
+	"{{" <SetBody> "}}"
+	<INTEGER>
+	<FLOAT>
+	<STRING>
+
+<ArrayBody> :=
+	<Value> <ArrayBodyPrime>
+	[e]
+	
+<ArrayBodyPrime> :=
+	"," <Value> <ArrayBodyPrime>
+	[e]
+
+<SetBody> :=
+	<Value> <SetBodyPrime>
+	[e]
+	
+<SetBodyPrime> :=
+	"," <Value> <SetBodyPrime>
+	[e]
+
+-------------------------------------------------
+Expressions
+-------------------------------------------------
+
+Operators:
+	unary: - ! ~ + #
+	binary: + - * / % ^ & | . << >> >>>
+
+Precedence:
+	(	
+	#
+	! - ~ +
+	^
+	* / %
+	+ -
+	<< >> >>>
+	&
+	.
+	|
+	)
+	;
