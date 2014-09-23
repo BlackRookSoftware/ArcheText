@@ -61,12 +61,12 @@ public class ArcheTextValue
 				if (target == null)
 					return operand.copy();
 				
-				target = target.copy();
-				
 				if (target.type.compareTo(operand.type) < 0)
 					target = target.promoteTo(operand.type);
 				else if (target.type.compareTo(operand.type) > 0)
 					operand = operand.promoteTo(target.type);
+				else
+					target = target.copy();
 				
 				switch (operand.type)
 				{

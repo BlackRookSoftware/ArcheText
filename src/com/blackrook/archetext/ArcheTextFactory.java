@@ -3,7 +3,9 @@ package com.blackrook.archetext;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
-import com.blackrook.archetext.annotation.ArcheTextIgnore;
+import com.blackrook.archetext.annotation.ATIgnore;
+import com.blackrook.archetext.annotation.ATName;
+import com.blackrook.archetext.exception.ArcheTextExportException;
 import com.blackrook.commons.ObjectPair;
 import com.blackrook.commons.Reflect;
 import com.blackrook.commons.TypeProfile;
@@ -23,7 +25,8 @@ public final class ArcheTextFactory
 	 */
 	public static <T> ArcheTextObject create(T value)
 	{
-		return create(null, null, value);
+		String name = value.getClass().getSimpleName();
+		return create(Character.toLowerCase(name.charAt(0)) + name.substring(1), getATNameFromObject(value), value);
 	}
 
 	/**
@@ -35,7 +38,7 @@ public final class ArcheTextFactory
 	 */
 	public static <T> ArcheTextObject create(String type, T value)
 	{
-		return create(type, null, value);
+		return create(type, getATNameFromObject(value), value);
 	}
 	
 	/**
@@ -57,6 +60,8 @@ public final class ArcheTextFactory
 	 * Exports the values of an object to an ArcheTextObject.
 	 * @param object the object to export.
 	 * @param atext the destination structure.
+	 * @throws ArcheTextExportException if a problem happens during export.
+	 * @throws ClassCastException if a value cannot be converted.
 	 */
 	private static <T> void exportTo(T object, ArcheTextObject atext)
 	{
@@ -66,18 +71,39 @@ public final class ArcheTextFactory
 		for (ObjectPair<String, MethodSignature> getter : typeProfile.getGetterMethods())
 		{
 			Method method = getter.getValue().getMethod();
-			if (method.getAnnotation(ArcheTextIgnore.class) == null)
-				atext.setField(getter.getKey(), Reflect.invokeBlind(method, object));
+			if (method.isAnnotationPresent(ATIgnore.class) || method.isAnnotationPresent(ATName.class))
+				continue;
+			
+			atext.setField(getter.getKey(), Reflect.invokeBlind(method, object));
 		}
 		
 		for (ObjectPair<String, Field> pubfield : typeProfile.getPublicFields())
 		{
 			Field field = pubfield.getValue();
-			if (field.getAnnotation(ArcheTextIgnore.class) == null)
-				atext.setField(pubfield.getKey(), Reflect.getFieldValue(field, object));
+			if (field.isAnnotationPresent(ATIgnore.class) || field.isAnnotationPresent(ATName.class))
+				continue;
+
+			atext.setField(pubfield.getKey(), Reflect.getFieldValue(field, object));
 		}
 		
 	}
 	
+	/**
+	 * Get name for object.
+	 */
+	private static <T> String getATNameFromObject(T object)
+	{
+		String out = null;
+		
+		@SuppressWarnings("unchecked")
+		TypeProfile<T> typeProfile = TypeProfile.getTypeProfile((Class<T>)object.getClass());
+
+		for (MethodSignature ms : typeProfile.getAnnotatedGetters(ATName.class))
+			out = Reflect.createForType(ms.getMethod().getName(), Reflect.invokeBlind(ms.getMethod(), object), String.class);
+		for (Field f : typeProfile.getAnnotatedPublicFields(ATName.class))
+			out = Reflect.createForType(f.getName(), Reflect.getFieldValue(f, object), String.class);
+		
+		return out;
+	}
 	
 }

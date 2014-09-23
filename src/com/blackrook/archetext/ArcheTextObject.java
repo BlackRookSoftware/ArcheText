@@ -1,11 +1,11 @@
 package com.blackrook.archetext;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.Iterator;
 
 import com.blackrook.archetext.ArcheTextValue.Combinator;
-import com.blackrook.archetext.annotation.ArcheTextIgnore;
+import com.blackrook.archetext.annotation.ATIgnore;
+import com.blackrook.archetext.annotation.ATName;
 import com.blackrook.commons.Common;
 import com.blackrook.commons.ObjectPair;
 import com.blackrook.commons.Reflect;
@@ -280,24 +280,16 @@ public class ArcheTextObject
 			String member = it.next();
 			Field field = null; 
 			MethodSignature setter = null;
-			if ((field = profile.getPublicFields().get(member)) != null)
-			{
-				if (!field.isAnnotationPresent(ArcheTextIgnore.class))
-				{
-					Class<?> type = field.getType();
-					Reflect.setField(object, member, getField(member, type));
-				}
-			}
-			else if ((setter = profile.getSetterMethods().get(member)) != null)
-			{
-				if (!setter.getMethod().isAnnotationPresent(ArcheTextIgnore.class))
-				{
-					Class<?> type = setter.getType();
-					Method method = setter.getMethod();
-					Reflect.invokeBlind(method, object, getField(member, type));
-				}
-			}			
+			if ((field = profile.getPublicFields().get(member)) != null && !field.isAnnotationPresent(ATIgnore.class))
+				Reflect.setField(object, member, getField(member, field.getType()));
+			else if ((setter = profile.getSetterMethods().get(member)) != null && !setter.getMethod().isAnnotationPresent(ATIgnore.class))
+				Reflect.invokeBlind(setter.getMethod(), object, getField(member, setter.getType()));
 		}
+		
+		for (Field f : profile.getAnnotatedPublicFields(ATName.class))
+			Reflect.setField(object, f.getName(), Reflect.createForType(getName(), String.class));
+		for (MethodSignature setter : profile.getAnnotatedSetters(ATName.class))
+			Reflect.invokeBlind(setter.getMethod(), object, Reflect.createForType(getName(), String.class));			
 		
 		return object;
 	}

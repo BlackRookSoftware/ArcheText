@@ -1,8 +1,9 @@
 package com.blackrook.archetext;
 
-import com.blackrook.commons.AbstractVector;
 import com.blackrook.commons.Common;
+import com.blackrook.commons.ObjectPair;
 import com.blackrook.commons.hash.HashMap;
+import com.blackrook.commons.list.List;
 
 /**
  * The root of an ArcheText Hierarchy.
@@ -11,6 +12,9 @@ import com.blackrook.commons.hash.HashMap;
  */
 public class ArcheTextRoot
 {
+	
+	private static final ArcheTextObject[] NO_OBJECTS = new ArcheTextObject[0];
+	
 	/**
 	 * An object's set of descendants - default and named. 
 	 */
@@ -131,6 +135,31 @@ public class ArcheTextRoot
 	}
 	
 	/**
+	 * Returns all ArcheTextObjects of a particular type.
+	 * @param type the type name.
+	 * @return
+	 */
+	public ArcheTextObject[] getAllByType(String type)
+	{
+		if (descendants == null)
+			return NO_OBJECTS;
+		
+		DescendantSet set = descendants.get(type);
+		if (set == null)
+			return NO_OBJECTS;
+		
+		List<ArcheTextObject> list = new List<ArcheTextObject>(200);
+		if (set.containsDefault())
+			list.add(set.defaultObject);
+		for (ObjectPair<String, ArcheTextObject> pair : set.nameSet)
+			list.add(pair.getValue());
+		
+		ArcheTextObject[] out = new ArcheTextObject[list.size()];
+		list.toArray(out);
+		return out;
+	}
+
+	/**
 	 * Adds an object. Empty name is default.
 	 */
 	public void add(ArcheTextObject object)
@@ -172,17 +201,6 @@ public class ArcheTextRoot
 			descendants = null;
 		
 		return false;
-	}
-	
-	/**
-	 * 
-	 * @param type
-	 * @return
-	 */
-	public AbstractVector<ArcheTextObject> getAllByType(String type)
-	{
-		// TODO: Finish.
-		return null;
 	}
 	
 }
