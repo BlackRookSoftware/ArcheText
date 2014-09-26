@@ -38,16 +38,16 @@ ArcheType Language Spec
 <Value> :=
 	"{" <ATFieldList> "}"
 	"[" <ArrayBody> "]"
-	"{{" <SetBody> "}}"
+	"<" <SetBody> ">"
 	<INTEGER>
 	<FLOAT>
 	<STRING>
 
-<ArrayBody> :=
+<ListBody> :=
 	<Value> <ArrayBodyPrime>
 	[e]
 	
-<ArrayBodyPrime> :=
+<ListBodyPrime> :=
 	"," <Value> <ArrayBodyPrime>
 	[e]
 

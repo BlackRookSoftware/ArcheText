@@ -165,7 +165,7 @@ public class ArcheTextObject
 	/**
 	 * Sets the value of a field.
 	 */
-	private void setField(String name, ArcheTextValue value)
+	void setField(String name, ArcheTextValue value)
 	{
 		if (fields == null)
 			fields = new HashMap<String, ArcheTextValue>();
@@ -223,7 +223,11 @@ public class ArcheTextObject
 	 */
 	public <T> T getField(String name, Class<T> outputType)
 	{
-		return Reflect.createForType(recurseValue(name, this).getValue(), outputType); 
+		ArcheTextValue rv = recurseValue(name, this);
+		if (rv == null)
+			return Reflect.createForType(null, outputType);
+		else
+			return Reflect.createForType(rv.getValue(), outputType); 
 	}
 	
 	// recursively finds the correct value.
@@ -233,7 +237,7 @@ public class ArcheTextObject
 		if (out != null && out.getCombinator() == Combinator.SET)
 			return out.copy();
 		
-		for (ArcheTextObject parent : atobject.parents)
+		if (atobject.parents != null) for (ArcheTextObject parent : atobject.parents)
 			out = out != null ? out.combineWith(recurseValue(name, parent)) : recurseValue(name, parent);
 		
 		return out;
@@ -256,6 +260,16 @@ public class ArcheTextObject
 			String fname = fieldNames.next();
 			setField(fname, addend.getLocalValue(fname).combineWith(getLocalValue(fname)));
 		}
+	}
+	
+	/**
+	 * Flattens the hierarchy of this object, such that it has no parent references
+	 * and its fields are all SET fields with the hierarchically-calulated results.
+	 * This object's contents will be changed. The parents are not changed.  
+	 */
+	public void flatten()
+	{
+		// TODO: Finish.
 	}
 	
 	/**

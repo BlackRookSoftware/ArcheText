@@ -15,7 +15,7 @@ import com.blackrook.commons.list.List;
  * The values stored in an {@link ArcheTextObject}.
  * @author Matthew Tropiano
  */
-public class ArcheTextValue
+public final class ArcheTextValue
 {
 	/**
 	 * ArcheText value internal types.
@@ -138,13 +138,23 @@ public class ArcheTextValue
 	/** Object internal value. */
 	private Object value;
 	
+	/** Calculated hashcode. */
+	private int hashCode;
+	
 	ArcheTextValue(Type type, Combinator combine, Object value)
 	{
 		this.type = type;
 		this.combinator = combine;
 		this.value = value;
+		calculateHashCode();
 	}
 	
+	// recalculates the hashcode.
+	private void calculateHashCode()
+	{
+		hashCode = type.hashCode() ^ combinator.hashCode() ^ (value != null ? value.hashCode() : 0);
+	}
+
 	/**
 	 * Creates a new value.
 	 * Assigns a SET combinator.
@@ -234,6 +244,12 @@ public class ArcheTextValue
 	}
 
 	@Override
+	public int hashCode()
+	{
+		return hashCode;
+	}
+	
+	@Override
 	public boolean equals(Object obj)
 	{
 		if (obj instanceof ArcheTextValue)
@@ -246,10 +262,19 @@ public class ArcheTextValue
 	 */
 	public boolean equals(ArcheTextValue other)
 	{
+		if (other == null)
+			return false;
+		
 		return 
 			this.type == other.type 
 			&& this.combinator == other.combinator
-			&& this.value.equals(other.value)
+			&& (
+				this.value == null 
+					? other.value == null
+					: other.value != null 
+						? this.value.equals(other.value)
+						: false
+			)
 			;
 	}
 	
@@ -367,6 +392,8 @@ public class ArcheTextValue
 		}
 	}
 
+	
+	
 	private boolean getBoolean()
 	{
 		return value != null ? ((Boolean)value) : false;  

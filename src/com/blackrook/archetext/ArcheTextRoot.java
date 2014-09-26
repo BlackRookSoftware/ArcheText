@@ -83,7 +83,7 @@ public class ArcheTextRoot
 			else if (nameSet == null)
 				return null;
 			else
-				return nameSet.removeUsingKey(name);
+				return nameSet.get(name);
 		}
 		
 	}
