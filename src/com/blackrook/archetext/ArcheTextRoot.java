@@ -1,5 +1,7 @@
 package com.blackrook.archetext;
 
+import java.lang.reflect.Array;
+
 import com.blackrook.commons.Common;
 import com.blackrook.commons.ObjectPair;
 import com.blackrook.commons.hash.HashMap;
@@ -156,6 +158,26 @@ public class ArcheTextRoot
 		
 		ArcheTextObject[] out = new ArcheTextObject[list.size()];
 		list.toArray(out);
+		return out;
+	}
+
+	/**
+	 * Returns all ArcheTextObjects of a particular type exported as POJOs.
+	 * @param type the type name.
+	 * @param outputType the output class type.
+	 * @return
+	 */
+	public <T> T[] exportAllByType(String type, Class<T> outputType)
+	{
+		ArcheTextObject[] objects = getAllByType(type);
+		
+		@SuppressWarnings("unchecked")
+		T[] out = (T[])Array.newInstance(outputType, objects.length);
+		
+		int x = 0;
+		for (ArcheTextObject obj : objects)
+			out[x++] = obj.newObject(outputType);
+		
 		return out;
 	}
 

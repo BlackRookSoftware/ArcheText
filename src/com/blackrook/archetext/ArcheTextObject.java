@@ -6,12 +6,14 @@ import java.util.Iterator;
 import com.blackrook.archetext.ArcheTextValue.Combinator;
 import com.blackrook.archetext.annotation.ATIgnore;
 import com.blackrook.archetext.annotation.ATName;
+import com.blackrook.commons.AbstractSet;
 import com.blackrook.commons.Common;
 import com.blackrook.commons.ObjectPair;
 import com.blackrook.commons.Reflect;
 import com.blackrook.commons.ResettableIterator;
 import com.blackrook.commons.TypeProfile;
 import com.blackrook.commons.TypeProfile.MethodSignature;
+import com.blackrook.commons.hash.Hash;
 import com.blackrook.commons.hash.HashMap;
 import com.blackrook.commons.linkedlist.Stack;
 
@@ -216,9 +218,10 @@ public class ArcheTextObject
 	}
 	
 	/**
-	 * Gets the value of a local field.
-	 * The field's value is taken from THIS OBJECT, not its parents.
+	 * Gets the value of a field, searching through its hierarchy
+	 * if it doesn't exist in this one.
 	 * @param name the name of the field.
+	 * @param outputType the type to output as.
 	 * @return the value converted to the desired type.
 	 */
 	public <T> T getField(String name, Class<T> outputType)
@@ -228,6 +231,16 @@ public class ArcheTextObject
 			return Reflect.createForType(null, outputType);
 		else
 			return Reflect.createForType(rv.getValue(), outputType); 
+	}
+	
+	/**
+	 * Gets the value of a local field.
+	 * The field's value is taken from THIS OBJECT, not its parents.
+	 * @param name the name of the field.
+	 */
+	ArcheTextValue getField(String name)
+	{
+		return recurseValue(name, this);
 	}
 	
 	// recursively finds the correct value.
@@ -251,8 +264,8 @@ public class ArcheTextObject
 	 */
 	public void cascade(ArcheTextObject addend)
 	{
-		for (ArcheTextObject parent : addend.parents)
-			this.parents.add(parent);
+		if (addend.parents != null) for (ArcheTextObject parent : addend.parents)
+			this.addParent(parent);
 		
 		Iterator<String> fieldNames = addend.fieldNameIterator();
 		while (fieldNames.hasNext())
@@ -264,19 +277,52 @@ public class ArcheTextObject
 	
 	/**
 	 * Flattens the hierarchy of this object, such that it has no parent references
-	 * and its fields are all SET fields with the hierarchically-calulated results.
-	 * This object's contents will be changed. The parents are not changed.  
+	 * and its fields are all SET fields with the hierarchically-calculated results.
+	 * This object's contents will be changed. The parents themselves are not changed.  
 	 */
 	public void flatten()
 	{
-		// TODO: Finish.
+		Hash<String> nameSet = new Hash<String>(24);
+		accumFieldNames(nameSet, this);
+		
+		for (String name : nameSet)
+			setField(name, getField(name));
+		
+		parents = null;
+	}
+	
+	//
+	private static void accumFieldNames(AbstractSet<String> nameSet, ArcheTextObject object)
+	{
+		if (object.fields != null) for (ObjectPair<String, ArcheTextValue> pair : object.fields)
+			nameSet.put(pair.getKey());
+		
+		if (object.parents != null) for (ArcheTextObject parent : object.parents)
+			accumFieldNames(nameSet, parent);
 	}
 	
 	/**
-	 * Applies this object to an object bean / plain ol' Java object, or Array.
+	 * Converts the contents of this object to a new instance of an object bean / plain ol' Java object.
 	 * <p>
-	 * This JSON object is applied via the target object's public fields
-	 * and setter methods, if an object.
+	 * This object is applied via the target object's public fields and setter methods.
+	 * <p>
+	 * For instance, if there is a member on this object called "color", its value
+	 * will be applied via the public field "color" or the setter "setColor()". Public
+	 * fields take precedence over setters.
+	 * @param clazz the output class type.
+	 * @return the new object.
+	 */
+	public <T extends Object> T newObject(Class<T> clazz)
+	{
+		T out = Reflect.create(clazz);
+		applyToObject(out);
+		return out;
+	}
+
+	/**
+	 * Applies this object to an object bean / plain ol' Java object.
+	 * <p>
+	 * This object is applied via the target object's public fields and setter methods.
 	 * <p>
 	 * For instance, if there is a member on this object called "color", its value
 	 * will be applied via the public field "color" or the setter "setColor()". Public
@@ -331,7 +377,7 @@ public class ArcheTextObject
 		if (parents != null) for (ArcheTextObject parent : parents)
 		{
 			sb.append(": ");
-			if (isDefault())
+			if (parent.isDefault())
 				sb.append(parent.type).append(' ');
 			else
 				sb.append(parent.type).append(' ').append('"').append(parent.name).append('"').append(' ');

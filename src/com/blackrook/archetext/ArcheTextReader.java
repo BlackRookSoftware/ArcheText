@@ -10,7 +10,7 @@ import java.io.StringReader;
 
 import com.blackrook.archetext.ArcheTextValue.Combinator;
 import com.blackrook.archetext.ArcheTextValue.Type;
-import com.blackrook.archetext.exception.ArcheTextExportException;
+import com.blackrook.archetext.exception.ArcheTextParseException;
 import com.blackrook.commons.AbstractSet;
 import com.blackrook.commons.AbstractVector;
 import com.blackrook.commons.hash.Hash;
@@ -22,7 +22,7 @@ import com.blackrook.lang.Lexer;
 import com.blackrook.lang.Parser;
 
 /**
- * 
+ * TODO: Separate out includer, support expressions, object references in objects.
  * @author Matthew Tropiano
  */
 public final class ArcheTextReader
@@ -285,6 +285,8 @@ public final class ArcheTextReader
 	 */
 	private class ATParser extends Parser
 	{
+		/** Current root. */
+		private ArcheTextRoot currentRoot;
 		/** Current object type. */
 		private String currentObjectType;
 		/** Current object name. */
@@ -308,12 +310,14 @@ public final class ArcheTextReader
 		 */
 		void readObjects(ArcheTextRoot targetRoot)
 		{
+			currentRoot = targetRoot;
+			
 			// prime first token.
 			nextToken();
 			
 			// keep parsing entries.
 			boolean noError = true;
-			while (currentToken() != null && (noError = parseATEntries(targetRoot)))
+			while (currentToken() != null && (noError = parseATEntries()))
 			{
 				targetRoot.add(currentObject);
 			}
@@ -330,7 +334,7 @@ public final class ArcheTextReader
 						if (i < errors.length-1)
 							sb.append('\n');
 					}
-					throw new ArcheTextExportException(sb.toString());
+					throw new ArcheTextParseException(sb.toString());
 				}
 			}
 			
@@ -342,7 +346,7 @@ public final class ArcheTextReader
 		 *
 		 * Sets: currentObject, currentObjectParents, currentObjectParentsFlatten
 		 */
-		private boolean parseATEntries(ArcheTextRoot root)
+		private boolean parseATEntries()
 		{
 			currentObject = null;
 			
@@ -351,18 +355,18 @@ public final class ArcheTextReader
 			
 			currentObject = new ArcheTextObject(currentObjectType, currentObjectName);
 			
-			if (!parseATParentList(root))
+			if (!parseATParentList())
 				return false;
 			
 			for (ArcheTextObject parent : currentObjectParents)
 				currentObject.addParent(parent);
 			
-			if (currentObjectParentsFlatten)
-				currentObject.flatten();
-			
 			if (!parseATBody(currentObject))
 				return false;
 			
+			if (currentObjectParentsFlatten)
+				currentObject.flatten();
+
 			return true;
 		}
 		
@@ -424,7 +428,7 @@ public final class ArcheTextReader
 		 *		[e]
 		 * Sets: currentObjectParents, currentObjectParentsFlatten
 		 */
-		private boolean parseATParentList(ArcheTextRoot root)
+		private boolean parseATParentList()
 		{
 			// clear ref list.
 			currentObjectParentsFlatten = false;
@@ -444,7 +448,7 @@ public final class ArcheTextReader
 				if (!parseATDeclaration())
 					return false;
 				
-				ArcheTextObject objectRef = root.get(currentObjectType, currentObjectName);
+				ArcheTextObject objectRef = currentRoot.get(currentObjectType, currentObjectName);
 				
 				if (objectRef == null)
 				{
@@ -454,7 +458,7 @@ public final class ArcheTextReader
 			
 				currentObjectParents.add(objectRef);
 				
-				return parseATParentListPrime(root);
+				return parseATParentListPrime();
 			}
 			
 			return true;
@@ -468,14 +472,14 @@ public final class ArcheTextReader
 		 *
 		 * Appends to: currentObjectParents
 		 */
-		private boolean parseATParentListPrime(ArcheTextRoot root)
+		private boolean parseATParentListPrime()
 		{
 			if (matchType(Kernel.TYPE_COLON))
 			{
 				if (!parseATDeclaration())
 					return false;
 				
-				ArcheTextObject objectRef = root.get(currentObjectType, currentObjectName);
+				ArcheTextObject objectRef = currentRoot.get(currentObjectType, currentObjectName);
 				
 				if (objectRef == null)
 				{
@@ -485,7 +489,7 @@ public final class ArcheTextReader
 			
 				currentObjectParents.add(objectRef);
 				
-				return parseATParentListPrime(root);
+				return parseATParentListPrime();
 			}
 			
 			return true;
@@ -563,6 +567,7 @@ public final class ArcheTextReader
 		
 		/*
 		 *	<Value> :=
+		 *		"@" <ATDeclaration>
 		 *		"{" <ATFieldList> "}"
 		 *		"[" <ListBody> "]"
 		 *		"<" <SetBody> ">"
@@ -574,7 +579,25 @@ public final class ArcheTextReader
 		 */
 		private boolean parseValue(Combinator combinator)
 		{
-			if (matchType(Kernel.TYPE_LBRACE))
+			
+			if (matchType(Kernel.TYPE_AT))
+			{
+				if (!parseATDeclaration())
+					return false;
+				
+				ArcheTextObject objectRef = currentRoot.get(currentObjectType, currentObjectName);
+				
+				if (objectRef == null)
+				{
+					addErrorMessage("Parent object ("+currentObjectType+(currentObjectName != null ? " \""+currentObjectName+"\"" : "")+") not declared or found.");
+					return false;
+				}
+
+				currentValue = new ArcheTextValue(Type.OBJECT, combinator, objectRef);
+				
+				return true;
+			}
+			else if (matchType(Kernel.TYPE_LBRACE))
 			{
 				ArcheTextObject object = new ArcheTextObject();
 				if (!parseATFieldList(object))
