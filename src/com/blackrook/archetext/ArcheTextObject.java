@@ -3,7 +3,6 @@ package com.blackrook.archetext;
 import java.lang.reflect.Field;
 import java.util.Iterator;
 
-import com.blackrook.archetext.ArcheTextValue.Combinator;
 import com.blackrook.archetext.annotation.ATIgnore;
 import com.blackrook.archetext.annotation.ATName;
 import com.blackrook.commons.AbstractSet;
@@ -32,8 +31,15 @@ public class ArcheTextObject
 	/** Object hierarchy parents. */
 	private Stack<ArcheTextObject> parents;
 	/** Object local fields. */
-	private HashMap<String, ArcheTextValue> fields;
+	private HashMap<String, Field> fields;
 
+	/** Field */
+	private class Field
+	{
+		private Combinator combinator;
+		private ArcheTextValue value;
+	}
+	
 	/**
 	 * Creates a new anonymous ArcheTextObject.
 	 */
@@ -160,17 +166,17 @@ public class ArcheTextObject
 	public void setField(String name, Combinator combinator, Object value)
 	{
 		if (fields == null)
-			fields = new HashMap<String, ArcheTextValue>();
+			fields = new HashMap<String, Field>();
 		fields.put(name, ArcheTextValue.create(combinator, value));
 	}
 	
 	/**
 	 * Sets the value of a field.
 	 */
-	void setField(String name, ArcheTextValue value)
+	void setField(String name, Field value)
 	{
 		if (fields == null)
-			fields = new HashMap<String, ArcheTextValue>();
+			fields = new HashMap<String, Field>();
 		fields.put(name, value);
 	}
 	
@@ -188,9 +194,21 @@ public class ArcheTextObject
 	}
 	
 	/**
+	 * Returns true of this object (and only the).
+	 * @param name the name of the field.
+	 */
+	public boolean containsLocalField(String name)
+	{
+		if (fields == null)
+			return false;
+		return fields.containsKey(name);
+	}
+	
+	/**
 	 * Gets the value of a local field.
 	 * The field's value is taken from THIS OBJECT, not its parents.
 	 * @param name the name of the field.
+	 * @param outputType the output type to convert to.
 	 * @return the value converted to the desired type.
 	 */
 	public <T> T getLocalField(String name, Class<T> outputType)
@@ -221,7 +239,7 @@ public class ArcheTextObject
 	 * Gets the value of a field, searching through its hierarchy
 	 * if it doesn't exist in this one.
 	 * @param name the name of the field.
-	 * @param outputType the type to output as.
+	 * @param outputType the output type to convert to.
 	 * @return the value converted to the desired type.
 	 */
 	public <T> T getField(String name, Class<T> outputType)

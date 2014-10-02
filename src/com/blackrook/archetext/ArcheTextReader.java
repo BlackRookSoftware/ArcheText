@@ -8,7 +8,6 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
 
-import com.blackrook.archetext.ArcheTextValue.Combinator;
 import com.blackrook.archetext.ArcheTextValue.Type;
 import com.blackrook.archetext.exception.ArcheTextParseException;
 import com.blackrook.commons.AbstractSet;
@@ -22,17 +21,25 @@ import com.blackrook.lang.Lexer;
 import com.blackrook.lang.Parser;
 
 /**
- * TODO: Separate out includer, support expressions, object references in objects.
+ * TODO: Support expressions, object references in objects.
  * @author Matthew Tropiano
  */
 public final class ArcheTextReader
 {
 	public static final String STREAMNAME_TEXT = "[Text String]";
 	
-	public ArcheTextReader()
+	/** The singular instance for the kernel. */
+	private static final Kernel KERNEL_INSTANCE = new Kernel();
+
+	/** Default includer to use when none specified. */
+	private static ArcheTextIncluder DEFAULT_INCLUDER = new ArcheTextIncluder()
 	{
-		
-	}
+		@Override
+		public InputStream getIncludeResource(String streamName, String path) throws IOException
+		{
+			return new FileInputStream(new File(path));
+		}
+	};
 	
 	/**
 	 * Reads ArcheText objects into a new root from a starting text file.
@@ -42,9 +49,9 @@ public final class ArcheTextReader
 	 * @throws IOException if the stream can't be read.
 	 * @throws NullPointerException if f is null. 
 	 */
-	public ArcheTextRoot read(File file) throws IOException
+	public static ArcheTextRoot read(File file) throws IOException
 	{
-		return read(file.getPath(), new FileInputStream(file));
+		return read(file.getPath(), new FileInputStream(file), DEFAULT_INCLUDER);
 	}
 	
 	/**
@@ -55,9 +62,9 @@ public final class ArcheTextReader
 	 * @throws IOException if the stream can't be read.
 	 * @throws NullPointerException if f is null. 
 	 */
-	public ArcheTextRoot read(String text) throws IOException
+	public static ArcheTextRoot read(String text) throws IOException
 	{
-		return read(STREAMNAME_TEXT, new StringReader(text));
+		return read(STREAMNAME_TEXT, new StringReader(text), DEFAULT_INCLUDER);
 	}
 	
 	/**
@@ -69,9 +76,9 @@ public final class ArcheTextReader
 	 * @throws IOException if the stream can't be read.
 	 * @throws NullPointerException if in is null. 
 	 */
-	public ArcheTextRoot read(String streamName, InputStream in) throws IOException
+	public static ArcheTextRoot read(String streamName, InputStream in) throws IOException
 	{
-		return read(streamName, new InputStreamReader(in));
+		return read(streamName, new InputStreamReader(in), DEFAULT_INCLUDER);
 	}
 	
 	/**
@@ -83,10 +90,68 @@ public final class ArcheTextReader
 	 * @throws IOException if the stream can't be read.
 	 * @throws NullPointerException if f is null. 
 	 */
-	public ArcheTextRoot read(String streamName, Reader reader) throws IOException
+	public static ArcheTextRoot read(String streamName, Reader reader) throws IOException
+	{
+		return read(streamName, reader, DEFAULT_INCLUDER);
+	}
+
+	/**
+	 * Reads ArcheText objects into a new root from a starting text file.
+	 * Note: Calls apply() with a new root.
+	 * @param file	the file to read from.
+	 * @param includer the includer to use to resolve "included" paths.
+	 * @return A new ArcheTextRoot that contains all the read object hierarchy.
+	 * @throws IOException if the stream can't be read.
+	 * @throws NullPointerException if f is null. 
+	 */
+	public static ArcheTextRoot read(File file, ArcheTextIncluder includer) throws IOException
+	{
+		return read(file.getPath(), new FileInputStream(file), includer);
+	}
+
+	/**
+	 * Reads ArcheText objects from a String of text into a new root.
+	 * Note: Calls apply() with a new root.
+	 * @param text the String to read from.
+	 * @param includer the includer to use to resolve "included" paths.
+	 * @return A new ArcheTextRoot that contains all the read object hierarchy.
+	 * @throws IOException if the stream can't be read.
+	 * @throws NullPointerException if f is null. 
+	 */
+	public static ArcheTextRoot read(String text, ArcheTextIncluder includer) throws IOException
+	{
+		return read(STREAMNAME_TEXT, new StringReader(text), includer);
+	}
+
+	/**
+	 * Reads ArcheText objects into a new root.
+	 * Note: Calls apply() with a new root.
+	 * @param streamName the name of the stream.
+	 * @param in the stream to read from.
+	 * @param includer the includer to use to resolve "included" paths.
+	 * @return A new ArcheTextRoot that contains all the read object hierarchy.
+	 * @throws IOException if the stream can't be read.
+	 * @throws NullPointerException if in is null. 
+	 */
+	public static ArcheTextRoot read(String streamName, InputStream in, ArcheTextIncluder includer) throws IOException
+	{
+		return read(streamName, new InputStreamReader(in), includer);
+	}
+
+	/**
+	 * Reads ArcheText objects into a new root from a reader stream.
+	 * Note: Calls apply() with a new root.
+	 * @param streamName the name of the stream.
+	 * @param reader the reader to read from.
+	 * @param includer the includer to use to resolve "included" paths.
+	 * @return A new ArcheTextRoot that contains all the read object hierarchy.
+	 * @throws IOException if the stream can't be read.
+	 * @throws NullPointerException if f is null. 
+	 */
+	public static ArcheTextRoot read(String streamName, Reader reader, ArcheTextIncluder includer) throws IOException
 	{
 		ArcheTextRoot out = new ArcheTextRoot();
-		apply(streamName, reader, out);
+		apply(streamName, reader, includer, out);
 		return out;
 	}
 
@@ -96,7 +161,7 @@ public final class ArcheTextReader
 	 * @param root the root to apply the objects to.
 	 * @throws NullPointerException	if either object is null. 
 	 */
-	public void apply(File f, ArcheTextRoot root) throws IOException
+	public static void apply(File f, ArcheTextRoot root) throws IOException
 	{
 		apply(f.getPath(), new FileInputStream(f), root);
 	}
@@ -107,7 +172,7 @@ public final class ArcheTextReader
 	 * @param root the root to apply the objects to.
 	 * @throws NullPointerException	if either object is null. 
 	 */
-	public void apply(String text, ArcheTextRoot root) throws IOException
+	public static void apply(String text, ArcheTextRoot root) throws IOException
 	{
 		apply(STREAMNAME_TEXT, new StringReader(text), root);
 	}
@@ -119,7 +184,7 @@ public final class ArcheTextReader
 	 * @param root the root to apply the objects to.
 	 * @throws NullPointerException	if either object is null. 
 	 */
-	public void apply(String streamName, InputStream in, ArcheTextRoot root)
+	public static void apply(String streamName, InputStream in, ArcheTextRoot root)
 	{
 		apply(streamName, new InputStreamReader(in), root);
 	}
@@ -131,28 +196,63 @@ public final class ArcheTextReader
 	 * @param root the root to apply the objects to.
 	 * @throws NullPointerException	if either object is null. 
 	 */
-	public void apply(String streamName, Reader reader, ArcheTextRoot root)
+	public static void apply(String streamName, Reader reader, ArcheTextRoot root)
 	{
-		ATLexer lexer = new ATLexer(streamName, reader);
+		apply(streamName, reader, DEFAULT_INCLUDER, root);
+	}
+		
+	/**
+	 * Applies the ArcheText objects read to an already existing root.
+	 * @param f	the file to read from.
+	 * @param includer the includer to use to resolve "included" paths.
+	 * @param root the root to apply the objects to.
+	 * @throws NullPointerException	if either object is null. 
+	 */
+	public static void apply(File f, ArcheTextIncluder includer, ArcheTextRoot root) throws IOException
+	{
+		apply(f.getPath(), new FileInputStream(f), includer, root);
+	}
+
+	/**
+	 * Applies the ArcheText objects read to an already existing root.
+	 * @param streamName the name of the stream.
+	 * @param in the stream to read from.
+	 * @param includer the includer to use to resolve "included" paths.
+	 * @param root the root to apply the objects to.
+	 * @throws NullPointerException	if either object is null. 
+	 */
+	public static void apply(String streamName, InputStream in, ArcheTextIncluder includer, ArcheTextRoot root)
+	{
+		apply(streamName, new InputStreamReader(in), includer, root);
+	}
+
+	/**
+	 * Applies the ArcheText objects read to an already existing root.
+	 * @param text the String to read from.
+	 * @param includer the includer to use to resolve "included" paths.
+	 * @param root the root to apply the objects to.
+	 * @throws NullPointerException	if either object is null. 
+	 */
+	public static void apply(String text, ArcheTextIncluder includer, ArcheTextRoot root) throws IOException
+	{
+		apply(STREAMNAME_TEXT, new StringReader(text), includer, root);
+	}
+
+	/**
+	 * Applies the ArcheText objects read to an already existing root.
+	 * @param streamName the name of the stream.
+	 * @param reader the reader to read from.
+	 * @param includer the includer to use to resolve "included" paths.
+	 * @param root the root to apply the objects to.
+	 * @throws NullPointerException	if either object is null. 
+	 */
+	public static void apply(String streamName, Reader reader, ArcheTextIncluder includer, ArcheTextRoot root)
+	{
+		ATLexer lexer = new ATLexer(streamName, reader, includer);
 		ATParser parser = new ATParser(lexer);
 		parser.readObjects(root);
 	}
 		
-	/**
-	 * Returns an open {@link InputStream} for a path when the parser needs a resource.
-	 * By default, this attempts to open a file at the provided path.
-	 * @param streamName the name of the stream.
-	 * @param path the stream path.
-	 * @return an open {@link InputStream} for the requested resource, or null if not found.
-	 */
-	public InputStream getIncludeResource(String streamName, String path) throws IOException
-	{
-		return new FileInputStream(new File(path));
-	}
-	
-	/** The singular instance for the kernel. */
-	private static final Kernel KERNEL_INSTANCE = new Kernel();
-
 	/** The Lexer Kernel for the ArcheText Lexers. */
 	private static class Kernel extends CommonLexerKernel
 	{
@@ -238,7 +338,7 @@ public final class ArcheTextReader
 			addCommentEndDelimiter("*/", TYPE_COMMENT);
 			
 			int i = 0;
-			for (ArcheTextValue.Combinator combinator : ArcheTextValue.Combinator.values())
+			for (Combinator combinator : Combinator.values())
 			{
 				addDelimiter(combinator.getAssignmentOperator(), TYPE_ASSIGNMENT_TYPE_START + (i++));
 				ASSIGNMENTOPERATOR_MAP.put(combinator.getAssignmentOperator(), combinator);
@@ -251,39 +351,45 @@ public final class ArcheTextReader
 	/**
 	 * The lexer for a reader context.
 	 */
-	private class ATLexer extends CommonLexer
+	private static class ATLexer extends CommonLexer
 	{
-		private ATLexer(Reader in)
+		private ArcheTextIncluder includer;
+		
+		private ATLexer(Reader in, ArcheTextIncluder includer)
 		{
 			super(KERNEL_INSTANCE, in);
+			this.includer = includer;
 		}
 
-		private ATLexer(String in)
+		private ATLexer(String in, ArcheTextIncluder includer)
 		{
 			super(KERNEL_INSTANCE, in);
+			this.includer = includer;
 		}
 		
-		private ATLexer(String name, Reader in)
+		private ATLexer(String name, Reader in, ArcheTextIncluder includer)
 		{
 			super(KERNEL_INSTANCE, name, in);
+			this.includer = includer;
 		}
 
-		private ATLexer(String name, String in)
+		private ATLexer(String name, String in, ArcheTextIncluder includer)
 		{
 			super(KERNEL_INSTANCE, name, in);
+			this.includer = includer;
 		}
 		
 		@Override
 		public InputStream getResource(String path) throws IOException
 		{
-			return getIncludeResource(getCurrentStreamName(), path);
+			return includer.getIncludeResource(getCurrentStreamName(), path);
 		}
 	}
 	
 	/**
 	 * The parser that parses text for the ArcheText structures. 
 	 */
-	private class ATParser extends Parser
+	private static class ATParser extends Parser
 	{
 		/** Current root. */
 		private ArcheTextRoot currentRoot;
@@ -593,7 +699,7 @@ public final class ArcheTextReader
 					return false;
 				}
 
-				currentValue = new ArcheTextValue(Type.OBJECT, combinator, objectRef);
+				currentValue = new ArcheTextValue(Type.OBJECT, objectRef);
 				
 				return true;
 			}
@@ -609,7 +715,7 @@ public final class ArcheTextReader
 					return false;
 				}
 
-				currentValue = new ArcheTextValue(Type.OBJECT, combinator, object);
+				currentValue = new ArcheTextValue(Type.OBJECT, object);
 				
 				return true;
 			}
@@ -625,7 +731,7 @@ public final class ArcheTextReader
 					return false;
 				}
 				
-				currentValue = new ArcheTextValue(Type.LIST, combinator, list);
+				currentValue = new ArcheTextValue(Type.LIST, list);
 
 				return true;
 			}
@@ -641,13 +747,13 @@ public final class ArcheTextReader
 					return false;
 				}
 				
-				currentValue = new ArcheTextValue(Type.SET, combinator, set);
+				currentValue = new ArcheTextValue(Type.SET, set);
 
 				return true;
 			}
 			else if (currentType(Lexer.TYPE_STRING))
 			{
-				currentValue = new ArcheTextValue(Type.STRING, combinator, currentToken().getLexeme());
+				currentValue = new ArcheTextValue(Type.STRING, currentToken().getLexeme());
 				nextToken();
 				return true;
 			}
@@ -655,27 +761,27 @@ public final class ArcheTextReader
 			{
 				String lexeme = currentToken().getLexeme();
 				if (lexeme.startsWith("0X") || lexeme.startsWith("0x"))
-					currentValue = new ArcheTextValue(Type.INTEGER, combinator, Long.parseLong(lexeme.substring(2), 16));
+					currentValue = new ArcheTextValue(Type.INTEGER, Long.parseLong(lexeme.substring(2), 16));
 				else if (lexeme.contains("."))
-					currentValue = new ArcheTextValue(Type.FLOAT, combinator, Double.parseDouble(lexeme));
+					currentValue = new ArcheTextValue(Type.FLOAT, Double.parseDouble(lexeme));
 				else
-					currentValue = new ArcheTextValue(Type.INTEGER, combinator, Long.parseLong(lexeme));
+					currentValue = new ArcheTextValue(Type.INTEGER, Long.parseLong(lexeme));
 				nextToken();
 				return true;
 			}
 			else if (matchType(Kernel.TYPE_TRUE))
 			{
-				currentValue = new ArcheTextValue(Type.BOOLEAN, combinator, true);
+				currentValue = new ArcheTextValue(Type.BOOLEAN, true);
 				return true;
 			}
 			else if (matchType(Kernel.TYPE_FALSE))
 			{
-				currentValue = new ArcheTextValue(Type.BOOLEAN, combinator, false);
+				currentValue = new ArcheTextValue(Type.BOOLEAN, false);
 				return true;
 			}
 			else if (matchType(Kernel.TYPE_NULL))
 			{
-				currentValue = new ArcheTextValue(Type.OBJECT, combinator, null);
+				currentValue = new ArcheTextValue(Type.OBJECT, null);
 				return true;
 			}
 			else

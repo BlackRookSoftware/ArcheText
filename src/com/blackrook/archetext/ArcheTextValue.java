@@ -38,113 +38,17 @@ public final class ArcheTextValue
 		OBJECT;
 	}
 
-	/**
-	 * ArcheText object internal accumulation types.
-	 */
-	public static enum Combinator
-	{
-		SET("=")
-		{
-			@Override
-			public ArcheTextValue combine(ArcheTextValue operand, ArcheTextValue target)
-			{
-				return operand != null ? operand.copy() : null;
-			}
-		},
-		
-		ADD("+=")
-		{
-			@Override
-			@SuppressWarnings("unchecked")
-			public ArcheTextValue combine(ArcheTextValue operand, ArcheTextValue target)
-			{
-				if (target == null)
-					return operand.copy();
-				
-				if (target.type.compareTo(operand.type) < 0)
-					target = target.promoteTo(operand.type);
-				else if (target.type.compareTo(operand.type) > 0)
-					operand = operand.promoteTo(target.type);
-				else
-					target = target.copy();
-				
-				switch (operand.type)
-				{
-					case BOOLEAN:
-						return new ArcheTextValue(Type.BOOLEAN, target.combinator, target.getBoolean() || operand.getBoolean());
-					case INTEGER:
-						return new ArcheTextValue(Type.INTEGER, target.combinator, target.getLong() + operand.getLong());
-					case FLOAT:
-						return new ArcheTextValue(Type.FLOAT, target.combinator, target.getDouble() + operand.getDouble());
-					case STRING:
-						return new ArcheTextValue(Type.STRING, target.combinator, target.getString() + operand.getString());
-					case SET:
-					{
-						// union
-						Hash<ArcheTextValue> set = new Hash<ArcheTextValue>();
-						for (ArcheTextValue val : (Hash<ArcheTextValue>)target.value)
-							set.put(val);
-						for (ArcheTextValue val : (Hash<ArcheTextValue>)operand.value)
-							set.put(val);
-						return new ArcheTextValue(Type.SET, target.combinator, set);
-					}
-					case LIST:
-					{
-						// append
-						List<ArcheTextValue> list = new List<ArcheTextValue>();
-						for (ArcheTextValue val : (List<ArcheTextValue>)target.value)
-							list.add(val);
-						for (ArcheTextValue val : (List<ArcheTextValue>)operand.value)
-							list.add(val);
-						return new ArcheTextValue(Type.LIST, target.combinator, list);
-					}
-					case OBJECT:
-					{
-						// combine
-						ArcheTextObject object = new ArcheTextObject();
-						object.cascade((ArcheTextObject)target.value);
-						object.cascade((ArcheTextObject)operand.value);
-						return new ArcheTextValue(Type.OBJECT, target.combinator, object);
-					}
-				}
-				
-				return null;
-			}
-		},
-		
-		;
-		
-		/** Combines two values. */
-		public abstract ArcheTextValue combine(ArcheTextValue me, ArcheTextValue them);
-		
-		private String assignmentOperator;
-		private Combinator(String assignmentOperator)
-		{
-			this.assignmentOperator = assignmentOperator;
-		}
-		
-		/** Returns the assignment operator for this combinator. */
-		public String getAssignmentOperator()
-		{
-			return assignmentOperator;
-		}
-		
-	}
-
 	/** Object value type. */
-	private Type type;
-	/** Object combine type - how to merge with parent values. */
-	private Combinator combinator;
+	Type type;
 	/** Object internal value. */
-	private Object value;
+	Object value;
 	
 	/** Calculated hashcode. */
 	private int hashCode;
 	
-	ArcheTextValue(Type type, Combinator combine, Object value)
+	ArcheTextValue(Type type, Object value)
 	{
 		this.type = type;
-		this.combinator = combine;
 		this.value = value;
 		calculateHashCode();
 	}
@@ -152,7 +56,7 @@ public final class ArcheTextValue
 	// recalculates the hashcode.
 	private void calculateHashCode()
 	{
-		hashCode = type.hashCode() ^ combinator.hashCode() ^ (value != null ? value.hashCode() : 0);
+		hashCode = type.hashCode() ^ (value != null ? value.hashCode() : 0);
 	}
 
 	/**
@@ -177,42 +81,42 @@ public final class ArcheTextValue
 	public static <T> ArcheTextValue create(Combinator combinator, T object)
 	{
 		if (object == null)
-			return new ArcheTextValue(Type.OBJECT, combinator, object);
+			return new ArcheTextValue(Type.OBJECT, object);
 		else if (object instanceof ArcheTextObject)
 		{
-			return new ArcheTextValue(Type.OBJECT, combinator, object);
+			return new ArcheTextValue(Type.OBJECT, object);
 		}
 		else if (object instanceof Enum)
 		{
-			return new ArcheTextValue(Type.STRING, combinator, object);
+			return new ArcheTextValue(Type.STRING, object);
 		}
 		else if (object instanceof Set<?>)
 		{
 			Hash<ArcheTextValue> set = new Hash<ArcheTextValue>();
 			for (Object obj : (Set<?>)object)
 				set.put(create(obj));
-			return new ArcheTextValue(Type.SET, combinator, set);
+			return new ArcheTextValue(Type.SET, set);
 		}
 		else if (object instanceof AbstractSet<?>)
 		{
 			Hash<ArcheTextValue> set = new Hash<ArcheTextValue>();
 			for (Object obj : (AbstractSet<?>)object)
 				set.put(create(obj));
-			return new ArcheTextValue(Type.SET, combinator, set);
+			return new ArcheTextValue(Type.SET, set);
 		}
 		else if (object instanceof Map<?, ?>)
 		{
 			ArcheTextObject ato = new ArcheTextObject();
 			for (Map.Entry<?, ?> pair : ((Map<?, ?>)object).entrySet())
 				ato.setField(String.valueOf(pair.getKey()), Combinator.SET, create(Combinator.SET, pair.getValue()));
-			return new ArcheTextValue(Type.OBJECT, combinator, ato);
+			return new ArcheTextValue(Type.OBJECT, ato);
 		}
 		else if (object instanceof AbstractMap<?, ?>)
 		{
 			ArcheTextObject ato = new ArcheTextObject();
 			for (ObjectPair<?, ?> pair : ((AbstractMap<?, ?>)object))
 				ato.setField(String.valueOf(pair.getKey()), Combinator.SET, create(Combinator.SET, pair.getValue()));
-			return new ArcheTextValue(Type.OBJECT, combinator, ato);
+			return new ArcheTextValue(Type.OBJECT, ato);
 		}
 		else if (Reflect.isArray(object))
 		{
@@ -220,27 +124,27 @@ public final class ArcheTextValue
 			int alen = Array.getLength(object);
 			for (int i = 0; i < alen; i++)
 				out.add(create(Array.get(object, i)));
-			return new ArcheTextValue(Type.LIST, combinator, out);
+			return new ArcheTextValue(Type.LIST, out);
 		}
 		else if (object instanceof Iterable<?>)
 		{
 			List<ArcheTextValue> out = new List<ArcheTextValue>();
 			for (Object obj : ((Iterable<?>)object))
 				out.add(create(obj));
-			return new ArcheTextValue(Type.LIST, combinator, out);
+			return new ArcheTextValue(Type.LIST, out);
 		}
 		else if (object instanceof Boolean)
-			return new ArcheTextValue(Type.BOOLEAN, combinator, object);
+			return new ArcheTextValue(Type.BOOLEAN, object);
 		else if (object instanceof Character)
-			return new ArcheTextValue(Type.STRING, combinator, String.valueOf(object));
+			return new ArcheTextValue(Type.STRING, String.valueOf(object));
 		else if (object instanceof Long || object instanceof Integer || object instanceof Short || object instanceof Byte)
-			return new ArcheTextValue(Type.INTEGER, combinator, ((Number)object).longValue());
+			return new ArcheTextValue(Type.INTEGER, ((Number)object).longValue());
 		else if (object instanceof Float || object instanceof Double)
-			return new ArcheTextValue(Type.FLOAT, combinator, ((Number)object).doubleValue());
+			return new ArcheTextValue(Type.FLOAT, ((Number)object).doubleValue());
 		else if (object instanceof String)
-			return new ArcheTextValue(Type.STRING, combinator, object);
+			return new ArcheTextValue(Type.STRING, object);
 		else
-			return new ArcheTextValue(Type.OBJECT, combinator, ArcheTextFactory.create(object));
+			return new ArcheTextValue(Type.OBJECT, ArcheTextFactory.create(object));
 	}
 
 	@Override
@@ -267,7 +171,6 @@ public final class ArcheTextValue
 		
 		return 
 			this.type == other.type 
-			&& this.combinator == other.combinator
 			&& (
 				this.value == null 
 					? other.value == null
@@ -287,20 +190,20 @@ public final class ArcheTextValue
 		switch (this.type)
 		{
 			case BOOLEAN:
-				return new ArcheTextValue(this.type, this.combinator, getBoolean());
+				return new ArcheTextValue(this.type, getBoolean());
 			case INTEGER:
-				return new ArcheTextValue(this.type, this.combinator, getLong());
+				return new ArcheTextValue(this.type, getLong());
 			case FLOAT:
-				return new ArcheTextValue(this.type, this.combinator, getDouble());
+				return new ArcheTextValue(this.type, getDouble());
 			case STRING:
-				return new ArcheTextValue(this.type, this.combinator, getString());
+				return new ArcheTextValue(this.type, getString());
 			case SET:
 			{
 				// union
 				Hash<ArcheTextValue> set = new Hash<ArcheTextValue>();
 				for (ArcheTextValue val : (Hash<ArcheTextValue>)this.value)
 					set.put(val.copy());
-				return new ArcheTextValue(Type.SET, this.combinator, set);
+				return new ArcheTextValue(Type.SET, set);
 			}
 			case LIST:
 			{
@@ -308,7 +211,7 @@ public final class ArcheTextValue
 				List<ArcheTextValue> list = new List<ArcheTextValue>();
 				for (ArcheTextValue val : (List<ArcheTextValue>)this.value)
 					list.add(val.copy());
-				return new ArcheTextValue(Type.LIST, this.combinator, list);
+				return new ArcheTextValue(Type.LIST, list);
 			}
 			default:
 			case OBJECT:
@@ -316,7 +219,7 @@ public final class ArcheTextValue
 				// combine
 				ArcheTextObject object = new ArcheTextObject();
 				object.cascade((ArcheTextObject)this.value);
-				return new ArcheTextValue(Type.OBJECT, this.combinator, object);
+				return new ArcheTextValue(Type.OBJECT, object);
 			}
 		}
 
@@ -331,14 +234,6 @@ public final class ArcheTextValue
 	}
 
 	/**
-	 * Gets the value combiner type.
-	 */
-	public Combinator getCombinator()
-	{
-		return combinator;
-	}
-
-	/**
 	 * Gets the value itself.
 	 */
 	public Object getValue()
@@ -347,15 +242,15 @@ public final class ArcheTextValue
 	}
 	
 	/**
-	 * Combines this value with another and returns 
-	 * @param value
-	 * @return
+	 * Combines this value with another and returns the result.
+	 * @param combinator the combinator to use.
+	 * @param value the value to combine with. 
+	 * @return the new value.
 	 */
-	public ArcheTextValue combineWith(ArcheTextValue value)
+	public ArcheTextValue combineWith(Combinator combinator, ArcheTextValue value)
 	{
-		return this.combinator.combine(this, value);
+		return combinator.combine(this, value);
 	}
-	
 	
 	/**
 	 * Returns a new ArcheTextValue that is a promoted type
@@ -392,24 +287,22 @@ public final class ArcheTextValue
 		}
 	}
 
-	
-	
-	private boolean getBoolean()
+	boolean getBoolean()
 	{
 		return value != null ? ((Boolean)value) : false;  
 	}
 	
-	private long getLong()
+	long getLong()
 	{
 		return value != null ? ((Long)value).longValue() : 0L;  
 	}
 	
-	private double getDouble()
+	double getDouble()
 	{
 		return value != null ? ((Double)value).doubleValue() : 0.0;  
 	}
 	
-	private String getString()
+	String getString()
 	{
 		return value != null ? String.valueOf(value) : null;  
 	}
@@ -419,21 +312,21 @@ public final class ArcheTextValue
 		switch (promotionType)
 		{
 			default:
-				throw new IllegalArgumentException("YOU SHOULDN'T BE SEEING THIS.");
+				throw new IllegalArgumentException("Cannot promote object to "+promotionType);
 			case INTEGER:
-				return new ArcheTextValue(Type.INTEGER, combinator, ((Boolean)value) ? 1L : 0L);
+				return new ArcheTextValue(Type.INTEGER, ((Boolean)value) ? 1L : 0L);
 			case FLOAT:
-				return new ArcheTextValue(Type.FLOAT, combinator, ((Boolean)value) ? 1.0 : 0.0);
+				return new ArcheTextValue(Type.FLOAT, ((Boolean)value) ? 1.0 : 0.0);
 			case STRING:
-				return new ArcheTextValue(Type.STRING, combinator, String.valueOf(value));
+				return new ArcheTextValue(Type.STRING, String.valueOf(value));
 			case SET:
 				Hash<ArcheTextValue> set = new Hash<ArcheTextValue>(1);
 				set.put(create(value));
-				return new ArcheTextValue(Type.SET, combinator, set);
+				return new ArcheTextValue(Type.SET, set);
 			case LIST:
 				List<ArcheTextValue> list = new List<ArcheTextValue>(1);
 				list.add(create(value));
-				return new ArcheTextValue(Type.LIST, combinator, list);
+				return new ArcheTextValue(Type.LIST, list);
 		}
 	}
 
@@ -442,19 +335,19 @@ public final class ArcheTextValue
 		switch (promotionType)
 		{
 			default:
-				throw new IllegalArgumentException("YOU SHOULDN'T BE SEEING THIS.");
+				throw new IllegalArgumentException("Cannot promote object to "+promotionType);
 			case FLOAT:
-				return new ArcheTextValue(Type.FLOAT, combinator, ((Number)value).doubleValue());
+				return new ArcheTextValue(Type.FLOAT, ((Number)value).doubleValue());
 			case STRING:
-				return new ArcheTextValue(Type.STRING, combinator, String.valueOf(value));
+				return new ArcheTextValue(Type.STRING, String.valueOf(value));
 			case SET:
 				Hash<ArcheTextValue> set = new Hash<ArcheTextValue>(1);
 				set.put(create(value));
-				return new ArcheTextValue(Type.SET, combinator, set);
+				return new ArcheTextValue(Type.SET, set);
 			case LIST:
 				List<ArcheTextValue> list = new List<ArcheTextValue>(1);
 				list.add(create(value));
-				return new ArcheTextValue(Type.LIST, combinator, list);
+				return new ArcheTextValue(Type.LIST, list);
 		}
 	}
 
@@ -463,17 +356,17 @@ public final class ArcheTextValue
 		switch (promotionType)
 		{
 			default:
-				throw new IllegalArgumentException("YOU SHOULDN'T BE SEEING THIS.");
+				throw new IllegalArgumentException("Cannot promote object to "+promotionType);
 			case STRING:
-				return new ArcheTextValue(Type.STRING, combinator, String.valueOf(value));
+				return new ArcheTextValue(Type.STRING, String.valueOf(value));
 			case SET:
 				Hash<ArcheTextValue> set = new Hash<ArcheTextValue>(1);
 				set.put(create(value));
-				return new ArcheTextValue(Type.SET, combinator, set);
+				return new ArcheTextValue(Type.SET, set);
 			case LIST:
 				List<ArcheTextValue> list = new List<ArcheTextValue>(1);
 				list.add(create(value));
-				return new ArcheTextValue(Type.LIST, combinator, list);
+				return new ArcheTextValue(Type.LIST, list);
 		}
 	}
 
@@ -482,15 +375,15 @@ public final class ArcheTextValue
 		switch (promotionType)
 		{
 			default:
-				throw new IllegalArgumentException("YOU SHOULDN'T BE SEEING THIS.");
+				throw new IllegalArgumentException("Cannot promote object to "+promotionType);
 			case SET:
 				Hash<ArcheTextValue> set = new Hash<ArcheTextValue>(1);
 				set.put(create(value));
-				return new ArcheTextValue(Type.SET, combinator, set);
+				return new ArcheTextValue(Type.SET, set);
 			case LIST:
 				List<ArcheTextValue> list = new List<ArcheTextValue>(1);
 				list.add(create(value));
-				return new ArcheTextValue(Type.LIST, combinator, list);
+				return new ArcheTextValue(Type.LIST, list);
 		}
 	}
 
@@ -499,27 +392,26 @@ public final class ArcheTextValue
 		switch (promotionType)
 		{
 			default:
-				throw new IllegalArgumentException("YOU SHOULDN'T BE SEEING THIS.");
+				throw new IllegalArgumentException("Cannot promote object to "+promotionType);
 			case LIST:
 				@SuppressWarnings("unchecked")
 				Hash<ArcheTextValue> set = (Hash<ArcheTextValue>)value;
 				List<ArcheTextValue> list = new List<ArcheTextValue>(set.size());
 				for (ArcheTextValue v : set)
 					list.add(create(v));
-				return new ArcheTextValue(Type.LIST, combinator, list);
+				return new ArcheTextValue(Type.LIST, list);
 		}
 	}
 
 	private ArcheTextValue promoteArrayTo(Type promotionType)
 	{
-		throw new IllegalArgumentException("YOU SHOULDN'T BE SEEING THIS.");
+		throw new IllegalArgumentException("Cannot promote object to "+promotionType);
 	}
-	
 	
 	@Override
 	public String toString()
 	{
-		return combinator.getAssignmentOperator() + " [" + type + ": " + value + "]";
+		return "[" + type + ": " + value + "]";
 	}
 	
 }
