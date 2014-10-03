@@ -60,25 +60,13 @@ public final class ArcheTextValue
 	}
 
 	/**
-	 * Creates a new value.
-	 * Assigns a SET combinator.
-	 * Converts primitives and boxed primitives, strings, arrays, and {@link AbstractSet}s, and {@link AbstractMap}s, and objects.
-	 * @param object the input object.
-	 * @return an {@link ArcheTextValue} to use in {@link ArcheTextObject}.
-	 */
-	public static <T> ArcheTextValue create(T object)
-	{
-		return create(Combinator.SET, object);
-	}
-
-	/**
 	 * Creates a new value. 
 	 * Converts primitives and boxed primitives, strings, arrays, and {@link AbstractSet}s, and {@link AbstractMap}s, and objects.
 	 * @param combinator the combinator type. 
 	 * @param object the input object.
 	 * @return an {@link ArcheTextValue} to use in {@link ArcheTextObject}.
 	 */
-	public static <T> ArcheTextValue create(Combinator combinator, T object)
+	public static <T> ArcheTextValue create(T object)
 	{
 		if (object == null)
 			return new ArcheTextValue(Type.OBJECT, object);
@@ -108,14 +96,14 @@ public final class ArcheTextValue
 		{
 			ArcheTextObject ato = new ArcheTextObject();
 			for (Map.Entry<?, ?> pair : ((Map<?, ?>)object).entrySet())
-				ato.setField(String.valueOf(pair.getKey()), Combinator.SET, create(Combinator.SET, pair.getValue()));
+				ato.setField(String.valueOf(pair.getKey()), Combinator.SET, create(pair.getValue()));
 			return new ArcheTextValue(Type.OBJECT, ato);
 		}
 		else if (object instanceof AbstractMap<?, ?>)
 		{
 			ArcheTextObject ato = new ArcheTextObject();
 			for (ObjectPair<?, ?> pair : ((AbstractMap<?, ?>)object))
-				ato.setField(String.valueOf(pair.getKey()), Combinator.SET, create(Combinator.SET, pair.getValue()));
+				ato.setField(String.valueOf(pair.getKey()), Combinator.SET, create(pair.getValue()));
 			return new ArcheTextValue(Type.OBJECT, ato);
 		}
 		else if (Reflect.isArray(object))

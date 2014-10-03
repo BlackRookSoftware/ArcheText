@@ -31,13 +31,25 @@ public class ArcheTextObject
 	/** Object hierarchy parents. */
 	private Stack<ArcheTextObject> parents;
 	/** Object local fields. */
-	private HashMap<String, Field> fields;
+	private HashMap<String, AField> fields;
 
 	/** Field */
-	private class Field
+	private class AField
 	{
 		private Combinator combinator;
 		private ArcheTextValue value;
+		
+		AField(Combinator combinator, ArcheTextValue value)
+		{
+			this.combinator = combinator;
+			this.value = value;
+		}
+		
+		public String toString()
+		{
+			return combinator.getAssignmentOperator() + " " + value.toString();
+		}
+		
 	}
 	
 	/**
@@ -152,9 +164,9 @@ public class ArcheTextObject
 	 * @param name the name of the field to set.
 	 * @param value the value of the field.
 	 */
-	public void setField(String name, Object value)
+	public void set(String name, Object value)
 	{
-		setField(name, Combinator.SET, value);
+		set(name, Combinator.SET, value);
 	}
 	
 	/**
@@ -163,28 +175,18 @@ public class ArcheTextObject
 	 * @param combinator the value combinator for field inheritance.
 	 * @param value the value of the field.
 	 */
-	public void setField(String name, Combinator combinator, Object value)
+	public void set(String name, Combinator combinator, Object value)
 	{
 		if (fields == null)
-			fields = new HashMap<String, Field>();
-		fields.put(name, ArcheTextValue.create(combinator, value));
-	}
-	
-	/**
-	 * Sets the value of a field.
-	 */
-	void setField(String name, Field value)
-	{
-		if (fields == null)
-			fields = new HashMap<String, Field>();
-		fields.put(name, value);
+			fields = new HashMap<String, AField>();
+		fields.put(name, new AField(combinator, ArcheTextValue.create(value)));
 	}
 	
 	/**
 	 * Clears the value of a field.
 	 * @param name the name of the field to clear.
 	 */
-	public void clearField(String name)
+	public void clear(String name)
 	{
 		if (fields == null)
 			return;
@@ -197,7 +199,7 @@ public class ArcheTextObject
 	 * Returns true of this object (and only the).
 	 * @param name the name of the field.
 	 */
-	public boolean containsLocalField(String name)
+	public boolean containsLocal(String name)
 	{
 		if (fields == null)
 			return false;
@@ -211,16 +213,16 @@ public class ArcheTextObject
 	 * @param outputType the output type to convert to.
 	 * @return the value converted to the desired type.
 	 */
-	public <T> T getLocalField(String name, Class<T> outputType)
+	public <T> T getLocal(String name, Class<T> outputType)
 	{
 		if (fields == null)
 			return Reflect.createForType(null, outputType);
 
-		ArcheTextValue value = fields.get(name);
-		if (value == null)
+		AField f = fields.get(name);
+		if (f == null)
 			return Reflect.createForType(null, outputType);
 		else
-			return Reflect.createForType(value.getValue(), outputType);
+			return Reflect.createForType(f.value, outputType);
 	}
 	
 	/**
@@ -228,7 +230,7 @@ public class ArcheTextObject
 	 * The field's value is taken from THIS OBJECT, not its parents.
 	 * @param name the name of the field.
 	 */
-	protected ArcheTextValue getLocalValue(String name)
+	protected AField getLocalField(String name)
 	{
 		if (fields == null)
 			return null;
@@ -236,13 +238,24 @@ public class ArcheTextObject
 	}
 	
 	/**
-	 * Gets the value of a field, searching through its hierarchy
-	 * if it doesn't exist in this one.
+	 * Gets the value of a field, searching through its lineage
+	 * if it doesn't exist in this one, combining vales as necessary.
+	 * @param name the name of the field.
+	 * @return the value, as an object.
+	 */
+	public Object get(String name)
+	{
+		return get(name, Object.class);
+	}
+	
+	/**
+	 * Gets the value of a field, searching through its lineage
+	 * if it doesn't exist in this one, combining vales as necessary.
 	 * @param name the name of the field.
 	 * @param outputType the output type to convert to.
 	 * @return the value converted to the desired type.
 	 */
-	public <T> T getField(String name, Class<T> outputType)
+	public <T> T get(String name, Class<T> outputType)
 	{
 		ArcheTextValue rv = recurseValue(name, this);
 		if (rv == null)
@@ -252,8 +265,17 @@ public class ArcheTextObject
 	}
 	
 	/**
-	 * Gets the value of a local field.
-	 * The field's value is taken from THIS OBJECT, not its parents.
+	 * Sets the value of a field read in from the reader.
+	 */
+	void setField(String name, Combinator combinator, ArcheTextValue value)
+	{
+		if (fields == null)
+			fields = new HashMap<String, AField>();
+		fields.put(name, new AField(combinator, value));
+	}
+
+	/**
+	 * Gets the final value of a local field, after recursing through its lineage.
 	 * @param name the name of the field.
 	 */
 	ArcheTextValue getField(String name)
@@ -264,12 +286,14 @@ public class ArcheTextObject
 	// recursively finds the correct value.
 	private static ArcheTextValue recurseValue(String name, ArcheTextObject atobject)
 	{
-		ArcheTextValue out = atobject.getLocalValue(name);
-		if (out != null && out.getCombinator() == Combinator.SET)
-			return out.copy();
+		AField field = atobject.getLocalField(name);
+		if (field != null && field.combinator == Combinator.SET)
+			return field.value.copy();
+
+		ArcheTextValue out = field != null ? field.value : null;
 		
 		if (atobject.parents != null) for (ArcheTextObject parent : atobject.parents)
-			out = out != null ? out.combineWith(recurseValue(name, parent)) : recurseValue(name, parent);
+			out = out != null ? out.combineWith(field.combinator, recurseValue(name, parent)) : recurseValue(name, parent);
 		
 		return out;
 	}
@@ -289,7 +313,9 @@ public class ArcheTextObject
 		while (fieldNames.hasNext())
 		{
 			String fname = fieldNames.next();
-			setField(fname, addend.getLocalValue(fname).combineWith(getLocalValue(fname)));
+			AField af = addend.getLocalField(fname);
+			AField tf = this.getLocalField(fname);
+			setField(fname, af.combinator, af.value.combineWith(af.combinator, tf != null ? tf.value : null));
 		}
 	}
 	
@@ -300,19 +326,26 @@ public class ArcheTextObject
 	 */
 	public void flatten()
 	{
-		Hash<String> nameSet = new Hash<String>(24);
-		accumFieldNames(nameSet, this);
-		
-		for (String name : nameSet)
-			setField(name, getField(name));
-		
+		for (String name : getAvailiableFieldNames())
+			setField(name, Combinator.SET, getField(name));
 		parents = null;
 	}
 	
-	//
+	/**
+	 * Returns all possible field names in this object's lineage.
+	 * @return an array of every field name.
+	 */
+	public AbstractSet<String> getAvailiableFieldNames()
+	{
+		Hash<String> nameSet = new Hash<String>(24);
+		accumFieldNames(nameSet, this);
+		return nameSet;
+	}
+	
+	// finds all field names in the hierarchy.
 	private static void accumFieldNames(AbstractSet<String> nameSet, ArcheTextObject object)
 	{
-		if (object.fields != null) for (ObjectPair<String, ArcheTextValue> pair : object.fields)
+		if (object.fields != null) for (ObjectPair<String, AField> pair : object.fields)
 			nameSet.put(pair.getKey());
 		
 		if (object.parents != null) for (ArcheTextObject parent : object.parents)
@@ -359,9 +392,9 @@ public class ArcheTextObject
 			Field field = null; 
 			MethodSignature setter = null;
 			if ((field = profile.getPublicFields().get(member)) != null && !field.isAnnotationPresent(ATIgnore.class))
-				Reflect.setField(object, member, getField(member, field.getType()));
+				Reflect.setField(object, member, get(member, field.getType()));
 			else if ((setter = profile.getSetterMethods().get(member)) != null && !setter.getMethod().isAnnotationPresent(ATIgnore.class))
-				Reflect.invokeBlind(setter.getMethod(), object, getField(member, setter.getType()));
+				Reflect.invokeBlind(setter.getMethod(), object, get(member, setter.getType()));
 		}
 		
 		for (Field f : profile.getAnnotatedPublicFields(ATName.class))
@@ -403,7 +436,7 @@ public class ArcheTextObject
 
 		sb.append("{ ");
 
-		if (fields != null) for (ObjectPair<String, ArcheTextValue> pair : fields)
+		if (fields != null) for (ObjectPair<String, AField> pair : fields)
 			sb.append(pair.getKey()).append(' ').append(pair.getValue()).append("; ");
 		
 		sb.append("}");

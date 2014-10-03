@@ -12,6 +12,7 @@ import com.blackrook.archetext.ArcheTextValue.Type;
 import com.blackrook.archetext.exception.ArcheTextParseException;
 import com.blackrook.commons.AbstractSet;
 import com.blackrook.commons.AbstractVector;
+import com.blackrook.commons.Common;
 import com.blackrook.commons.hash.Hash;
 import com.blackrook.commons.hash.HashMap;
 import com.blackrook.commons.list.List;
@@ -30,14 +31,62 @@ public final class ArcheTextReader
 	
 	/** The singular instance for the kernel. */
 	private static final Kernel KERNEL_INSTANCE = new Kernel();
-
-	/** Default includer to use when none specified. */
-	private static ArcheTextIncluder DEFAULT_INCLUDER = new ArcheTextIncluder()
+	/** The singular instance for the default includer. */
+	private static final DefaultIncluder DEFAULT_INCLUDER = new DefaultIncluder();
+	
+	/** 
+	 * Default includer to use when none specified.
+	 * This includer can either pull from the classpath, URIs, or files.
+	 * <p>
+	 * <ul>
+	 * <li>Paths that start with {@code classpath:} are parsed as resource paths in the current classpath.</li>
+	 * <li>
+	 * 		Else, the path is interpreted as a file path, with the following search order:
+	 * 		<ul>
+	 * 			<li>Relative to parent of source stream.</li>
+	 * 			<li>As is.</li>
+	 * 		</ul>
+	 * </li>
+	 * </ul> 
+	 */
+	public static class DefaultIncluder implements ArcheTextIncluder
 	{
+		private static final String CLASSPATH_PREFIX = "classpath:";
+		
+		// cannot be instantiated outside of this class.
+		private DefaultIncluder(){}
+		
 		@Override
 		public InputStream getIncludeResource(String streamName, String path) throws IOException
 		{
-			return new FileInputStream(new File(path));
+			if (Common.isWindows() && streamName.contains("\\")) // check for Windows paths.
+				streamName = streamName.replace('\\', '/');
+			
+			String streamParent = null;
+			int lidx = -1; 
+			if ((lidx = streamName.lastIndexOf('/')) >= 0)
+				streamParent = streamName.substring(0, lidx + 1);
+			
+			if (path.startsWith(CLASSPATH_PREFIX) || (streamParent != null && streamParent.startsWith(CLASSPATH_PREFIX)))
+				return Common.openResource(((streamParent != null ? streamParent : "") + path).substring(CLASSPATH_PREFIX.length()));
+			else
+			{
+				File f = null;
+				if (streamParent != null)
+				{
+					f = new File(streamParent + path);
+					if (f.exists())
+						return new FileInputStream(f);
+					else
+						return new FileInputStream(new File(path));
+				}
+				else
+				{
+					return new FileInputStream(new File(path));
+				}
+				
+			}
+			
 		}
 	};
 	
@@ -155,6 +204,19 @@ public final class ArcheTextReader
 		return out;
 	}
 
+	/**
+	 * Reads ArcheText objects from a classpath resource.
+	 * Note: Calls apply() with a new root.
+	 * @param name the resource name.
+	 * @return A new ArcheTextRoot that contains all the read object hierarchy.
+	 * @throws IOException if the stream can't be read.
+	 * @throws NullPointerException if name is null. 
+	 */
+	public static ArcheTextRoot readResource(String name) throws IOException
+	{
+		return read("classpath:"+name, Common.openResource(name), DEFAULT_INCLUDER);
+	}
+	
 	/**
 	 * Applies the ArcheText objects read to an already existing root.
 	 * @param f	the file to read from.
@@ -659,7 +721,7 @@ public final class ArcheTextReader
 				if (!parseValue(combinator))
 					return false;
 				
-				object.setField(member, currentValue);
+				object.setField(member, combinator, currentValue);
 				
 				if (!matchTypeStrict(Kernel.TYPE_SEMICOLON))
 					return false;

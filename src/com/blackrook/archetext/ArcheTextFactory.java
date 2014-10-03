@@ -74,7 +74,7 @@ public final class ArcheTextFactory
 			if (method.isAnnotationPresent(ATIgnore.class) || method.isAnnotationPresent(ATName.class))
 				continue;
 			
-			atext.setField(getter.getKey(), Reflect.invokeBlind(method, object));
+			atext.set(getter.getKey(), Reflect.invokeBlind(method, object));
 		}
 		
 		for (ObjectPair<String, Field> pubfield : typeProfile.getPublicFields())
@@ -83,7 +83,7 @@ public final class ArcheTextFactory
 			if (field.isAnnotationPresent(ATIgnore.class) || field.isAnnotationPresent(ATName.class))
 				continue;
 
-			atext.setField(pubfield.getKey(), Reflect.getFieldValue(field, object));
+			atext.set(pubfield.getKey(), Reflect.getFieldValue(field, object));
 		}
 		
 	}

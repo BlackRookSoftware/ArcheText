@@ -153,7 +153,7 @@ public class ArcheTextRoot
 		List<ArcheTextObject> list = new List<ArcheTextObject>(200);
 		if (set.containsDefault())
 			list.add(set.defaultObject);
-		for (ObjectPair<String, ArcheTextObject> pair : set.nameSet)
+		if (set.nameSet != null) for (ObjectPair<String, ArcheTextObject> pair : set.nameSet)
 			list.add(pair.getValue());
 		
 		ArcheTextObject[] out = new ArcheTextObject[list.size()];
@@ -167,7 +167,7 @@ public class ArcheTextRoot
 	 * @param outputType the output class type.
 	 * @return
 	 */
-	public <T> T[] exportAllByType(String type, Class<T> outputType)
+	public <T> T[] exportByType(String type, Class<T> outputType)
 	{
 		ArcheTextObject[] objects = getAllByType(type);
 		
