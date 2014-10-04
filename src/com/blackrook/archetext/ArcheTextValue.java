@@ -62,7 +62,6 @@ public final class ArcheTextValue
 	/**
 	 * Creates a new value. 
 	 * Converts primitives and boxed primitives, strings, arrays, and {@link AbstractSet}s, and {@link AbstractMap}s, and objects.
-	 * @param combinator the combinator type. 
 	 * @param object the input object.
 	 * @return an {@link ArcheTextValue} to use in {@link ArcheTextObject}.
 	 */

@@ -33,7 +33,7 @@ public final class ArcheTextReadExample
 		
 		for (ArcheTextObject obj : root.getAllByType("junk"))
 		{
-			System.out.println(obj.getType() + " " + obj.getName());
+			System.out.println("===="+obj.getType() + " " + obj.getName());
 			for (String s : obj.getAvailiableFieldNames())
 				System.out.println(s + ": " + obj.get(s, Object.class));
 		}
