@@ -228,6 +228,26 @@ public final class ArcheTextValue
 		return value;
 	}
 	
+	boolean getBoolean()
+	{
+		return value != null ? ((Boolean)value) : false;  
+	}
+
+	long getLong()
+	{
+		return value != null ? ((Long)value).longValue() : 0L;  
+	}
+
+	double getDouble()
+	{
+		return value != null ? ((Double)value).doubleValue() : 0.0;  
+	}
+
+	String getString()
+	{
+		return value != null ? String.valueOf(value) : null;  
+	}
+
 	/**
 	 * Combines this value with another and returns the result.
 	 * @param combinator the combinator to use.
@@ -245,20 +265,20 @@ public final class ArcheTextValue
 	 * If the same type is passed in, this object is returned.
 	 * @param promotionType the type to promote to.
 	 * @return the new, promoted value.
-	 * @throws IllegalArgumentException if the type is less than this one or
+	 * @throws IllegalStateException if the type is less than this one or not promotable.
 	 */
 	public ArcheTextValue promoteTo(Type promotionType)
 	{
 		if (promotionType == Type.OBJECT)
-			throw new IllegalArgumentException("Cannot promote this value to an Object.");
+			throw new IllegalStateException("Cannot promote this value to an Object.");
 		else if (promotionType.ordinal() < type.ordinal())
-			throw new IllegalArgumentException("Cannot promote this value to a lesser type. Current is "+type+". Promotion type is "+promotionType+".");
+			throw new IllegalStateException("Cannot promote this value to a lesser type. Current is "+type+". Promotion type is "+promotionType+".");
 		else if (promotionType.ordinal() == type.ordinal())
 			return this;
 		else switch (type)
 		{
 			default:
-				throw new IllegalArgumentException("This value does not have a promotable type. Current is "+type+".");
+				throw new IllegalStateException("This value does not have a promotable type. Current is "+type+".");
 			case BOOLEAN:
 				return promoteBooleanTo(promotionType);
 			case INTEGER:
@@ -274,24 +294,80 @@ public final class ArcheTextValue
 		}
 	}
 
-	boolean getBoolean()
+	/**
+	 * Negates the value of this value, returning a new one.
+	 * Only works for integers, floats, and strings (strings are set to lower case).
+	 * @throws IllegalStateException if the current type is not a correct type.
+	 */
+	public ArcheTextValue negate()
 	{
-		return value != null ? ((Boolean)value) : false;  
+		switch (type)
+		{
+			case INTEGER:
+				return new ArcheTextValue(Type.INTEGER, -getLong());
+			case FLOAT:
+				return new ArcheTextValue(Type.FLOAT, -getDouble());
+			case STRING:
+				return new ArcheTextValue(Type.STRING, getString().toLowerCase());
+			default:
+				throw new IllegalStateException("This value does not have a negatable type. Current is "+type+".");
+		}
 	}
 	
-	long getLong()
+	/**
+	 * Returns the logical "not" value of this value, returning a new one.
+	 * Only works for booleans.
+	 * @throws IllegalStateException if the current type is not a correct type.
+	 */
+	public ArcheTextValue not()
 	{
-		return value != null ? ((Long)value).longValue() : 0L;  
+		switch (type)
+		{
+			case BOOLEAN:
+				return new ArcheTextValue(Type.BOOLEAN, !getBoolean());
+			default:
+				throw new IllegalStateException("This value does not have a \"not\"-able type. Current is "+type+".");
+		}
 	}
 	
-	double getDouble()
+	/**
+	 * Returns the bitwise "not" value of this value, returning a new one.
+	 * Only works for booleans, integers, and floats.
+	 * @throws IllegalStateException if the current type is not a correct type.
+	 */
+	public ArcheTextValue bitwiseNot()
 	{
-		return value != null ? ((Double)value).doubleValue() : 0.0;  
+		switch (type)
+		{
+			case BOOLEAN:
+				return new ArcheTextValue(Type.BOOLEAN, !getBoolean());
+			case INTEGER:
+				return new ArcheTextValue(Type.INTEGER, ~getLong());
+			case FLOAT:
+				return new ArcheTextValue(Type.FLOAT, Double.longBitsToDouble(~Double.doubleToLongBits(getDouble())));
+			default:
+				throw new IllegalStateException("This value does not have a bitwise-not-able type. Current is "+type+".");
+		}
 	}
 	
-	String getString()
+	/**
+	 * Returns the absolute value of this value, returning a new one.
+	 * Only works for integers, floats, and strings (strings are set to upper case).
+	 * @throws IllegalStateException if the current type is not a correct type.
+	 */
+	public ArcheTextValue absolute()
 	{
-		return value != null ? String.valueOf(value) : null;  
+		switch (type)
+		{
+			case INTEGER:
+				return new ArcheTextValue(Type.INTEGER, Math.abs(getLong()));
+			case FLOAT:
+				return new ArcheTextValue(Type.FLOAT, Math.abs(getDouble()));
+			case STRING:
+				return new ArcheTextValue(Type.STRING, getString().toUpperCase());
+			default:
+				throw new IllegalStateException("This value does not have a absolute-able type. Current is "+type+".");
+		}
 	}
 	
 	private ArcheTextValue promoteBooleanTo(Type promotionType)
@@ -299,7 +375,7 @@ public final class ArcheTextValue
 		switch (promotionType)
 		{
 			default:
-				throw new IllegalArgumentException("Cannot promote object to "+promotionType);
+				throw new IllegalStateException("Cannot promote object to "+promotionType);
 			case INTEGER:
 				return new ArcheTextValue(Type.INTEGER, ((Boolean)value) ? 1L : 0L);
 			case FLOAT:
@@ -322,7 +398,7 @@ public final class ArcheTextValue
 		switch (promotionType)
 		{
 			default:
-				throw new IllegalArgumentException("Cannot promote object to "+promotionType);
+				throw new IllegalStateException("Cannot promote object to "+promotionType);
 			case FLOAT:
 				return new ArcheTextValue(Type.FLOAT, ((Number)value).doubleValue());
 			case STRING:
@@ -343,7 +419,7 @@ public final class ArcheTextValue
 		switch (promotionType)
 		{
 			default:
-				throw new IllegalArgumentException("Cannot promote object to "+promotionType);
+				throw new IllegalStateException("Cannot promote object to "+promotionType);
 			case STRING:
 				return new ArcheTextValue(Type.STRING, String.valueOf(value));
 			case SET:
@@ -362,7 +438,7 @@ public final class ArcheTextValue
 		switch (promotionType)
 		{
 			default:
-				throw new IllegalArgumentException("Cannot promote object to "+promotionType);
+				throw new IllegalStateException("Cannot promote object to "+promotionType);
 			case SET:
 				Hash<ArcheTextValue> set = new Hash<ArcheTextValue>(1);
 				set.put(create(value));
@@ -379,7 +455,7 @@ public final class ArcheTextValue
 		switch (promotionType)
 		{
 			default:
-				throw new IllegalArgumentException("Cannot promote object to "+promotionType);
+				throw new IllegalStateException("Cannot promote object to "+promotionType);
 			case LIST:
 				@SuppressWarnings("unchecked")
 				Hash<ArcheTextValue> set = (Hash<ArcheTextValue>)value;
@@ -392,7 +468,7 @@ public final class ArcheTextValue
 
 	private ArcheTextValue promoteArrayTo(Type promotionType)
 	{
-		throw new IllegalArgumentException("Cannot promote object to "+promotionType);
+		throw new IllegalStateException("Cannot promote object to "+promotionType);
 	}
 	
 	@Override

@@ -15,6 +15,7 @@ import com.blackrook.commons.AbstractVector;
 import com.blackrook.commons.Common;
 import com.blackrook.commons.hash.Hash;
 import com.blackrook.commons.hash.HashMap;
+import com.blackrook.commons.linkedlist.Stack;
 import com.blackrook.commons.list.List;
 import com.blackrook.lang.CommonLexer;
 import com.blackrook.lang.CommonLexerKernel;
@@ -339,7 +340,7 @@ public final class ArcheTextReader
 		static final int TYPE_DIV = 16;
 		static final int TYPE_MODULO = 17;
 		static final int TYPE_POWER = 18;
-		static final int TYPE_LNOT = 19;
+		static final int TYPE_BITNOT = 19;
 		static final int TYPE_NOT = 20;
 		static final int TYPE_AND = 21;
 		static final int TYPE_OR = 22;
@@ -347,6 +348,7 @@ public final class ArcheTextReader
 		static final int TYPE_LSHIFT = 24;
 		static final int TYPE_RSHIFT = 25;
 		static final int TYPE_RSHIFTPAD = 26;
+		static final int TYPE_REF = 26;
 
 		static final int TYPE_TRUE = 40;
 		static final int TYPE_FALSE = 41;
@@ -376,17 +378,18 @@ public final class ArcheTextReader
 			addDelimiter("<-", TYPE_LEFTARROW);
 
 			addDelimiter("@", TYPE_AT);
+			addDelimiter(".", TYPE_REF);
 			addDelimiter("+", TYPE_PLUS);
 			addDelimiter("-", TYPE_MINUS);
 			addDelimiter("*", TYPE_TIMES);
 			addDelimiter("/", TYPE_DIV);
 			addDelimiter("%", TYPE_MODULO);
-			addDelimiter("^", TYPE_POWER);
-			addDelimiter("~", TYPE_LNOT);
+			addDelimiter("'", TYPE_POWER);
+			addDelimiter("~", TYPE_BITNOT);
 			addDelimiter("!", TYPE_NOT);
 			addDelimiter("&", TYPE_AND);
 			addDelimiter("|", TYPE_OR);
-			addDelimiter(".", TYPE_XOR);
+			addDelimiter("^", TYPE_XOR);
 			addDelimiter("<<", TYPE_LSHIFT);
 			addDelimiter(">>", TYPE_RSHIFT);
 			addDelimiter(">>>", TYPE_RSHIFTPAD);
@@ -410,6 +413,55 @@ public final class ArcheTextReader
 		
 	}
 	
+	/**
+	 * All expression operator types.
+	 * @author Matthew Tropiano
+	 */
+	private enum Operator
+	{
+		OR			(1, false),
+		XOR			(1, false),
+
+		AND			(2, false),
+
+		LSHIFT		(3, false),
+		RSHIFT		(3, false),
+		RSHIFTPAD	(3, false),
+
+		PLUS		(4, false),
+		MINUS		(4, false),
+		
+		MULTIPLY	(5, false),
+		DIVIDE		(5, false),
+		MODULO		(5, false),
+		
+		POWER		(6, true),
+
+		NEGATE		(7, true),
+		NOT			(7, true),
+		BITNOT		(7, true),
+		ABSOLUTE	(7, true),
+
+		LPAREN		(8, true),
+		LLIST		(8, true),
+		LSET		(8, true),
+
+		REFERENCE	(9, false),
+		;
+		
+		private int precedence;
+		private boolean rightAssociative;
+		private Operator(int precedence, boolean rightAssociative) 
+		{
+			this.precedence = precedence;
+			this.rightAssociative = rightAssociative;
+		}
+
+		public int getPrecedence() {return precedence;}
+		public boolean isRightAssociative() {return rightAssociative;}
+		
+	}
+
 	/**
 	 * The lexer for a reader context.
 	 */
@@ -465,12 +517,17 @@ public final class ArcheTextReader
 		private List<ArcheTextObject> currentObjectParents;
 		/** Current object reference flatten flag. */
 		private boolean currentObjectParentsFlatten;
-		/** Current value. */
-		private ArcheTextValue currentValue;
+
+		/** Expression value stack. */
+		private Stack<ArcheTextValue> valueStack;
+		/** Expression operator stack. */
+		private Stack<Operator> operatorStack;
 		
 		private ATParser(ATLexer lexer)
 		{
 			super(lexer);
+			valueStack = new Stack<ArcheTextValue>();
+			operatorStack = new Stack<Operator>();
 		}
 		
 		/**
@@ -721,7 +778,7 @@ public final class ArcheTextReader
 				if (!parseValue(combinator))
 					return false;
 				
-				object.setField(member, combinator, currentValue);
+				object.setField(member, combinator, valueStack.pop());
 				
 				if (!matchTypeStrict(Kernel.TYPE_SEMICOLON))
 					return false;
@@ -737,13 +794,7 @@ public final class ArcheTextReader
 		 *	<Value> :=
 		 *		"@" <ATDeclaration>
 		 *		"{" <ATFieldList> "}"
-		 *		"[" <ListBody> "]"
-		 *		"<" <SetBody> ">"
-		 *		<NUMBER>
-		 *		<STRING>
-		 *		<TRUE>
-		 *		<FALSE>
-		 *		<NULL>
+		 *		[EXPRESSION]
 		 */
 		private boolean parseValue(Combinator combinator)
 		{
@@ -761,7 +812,7 @@ public final class ArcheTextReader
 					return false;
 				}
 
-				currentValue = new ArcheTextValue(Type.OBJECT, objectRef);
+				valueStack.push(new ArcheTextValue(Type.OBJECT, objectRef));
 				
 				return true;
 			}
@@ -777,11 +828,141 @@ public final class ArcheTextReader
 					return false;
 				}
 
-				currentValue = new ArcheTextValue(Type.OBJECT, object);
+				valueStack.push(new ArcheTextValue(Type.OBJECT, object));
 				
 				return true;
 			}
-			else if (matchType(Kernel.TYPE_LBRACK))
+			else
+				return parseExpression();
+		}
+		
+		/*
+		 * 
+		 */
+		private boolean parseExpression()
+		{
+			// was the last read token a value?
+			boolean lastWasValue = false;
+			
+			// TODO: Finish.
+			
+			if (valueStack.isEmpty())
+			{
+				addErrorMessage("Expected expression.");
+				return false;
+			}
+
+			return true;
+		}
+		
+		// Return true if token type can be a unary operator.
+		private boolean isValidLiteralType()
+		{
+			switch (currentToken().getType())
+			{
+				case Lexer.TYPE_STRING:
+				case Lexer.TYPE_NUMBER:
+				case Kernel.TYPE_TRUE:
+				case Kernel.TYPE_FALSE:
+				case Kernel.TYPE_NULL:
+					return true;
+				default:
+					return false;
+			}
+		}
+		
+		// Return true if token type can be a unary operator.
+		private boolean isValidSetType()
+		{
+			switch (currentToken().getType())
+			{
+				case Kernel.TYPE_LBRACE:
+				case Kernel.TYPE_RBRACE:
+				case Kernel.TYPE_LANGLEBRACK:
+				case Kernel.TYPE_RANGLEBRACK:
+				case Kernel.TYPE_LBRACK:
+				case Kernel.TYPE_RBRACK:
+				case Kernel.TYPE_LPAREN:
+				case Kernel.TYPE_RPAREN:
+				case Kernel.TYPE_COMMA:
+				case Kernel.TYPE_SEMICOLON:
+					return true;
+				default:
+					return false;
+			}
+		}
+		
+		// Return true if token type can be a unary operator.
+		private boolean isUnaryOperatorType()
+		{
+			switch (currentToken().getType())
+			{
+				case Kernel.TYPE_REF:
+				case Kernel.TYPE_MINUS:
+				case Kernel.TYPE_PLUS:
+				case Kernel.TYPE_BITNOT:
+				case Kernel.TYPE_NOT:
+					return true;
+				default:
+					return false;
+			}
+		}
+		
+		// Return true if token type can be a binary operator.
+		private boolean isBinaryOperatorType()
+		{
+			switch (currentToken().getType())
+			{
+				case Kernel.TYPE_PLUS:
+				case Kernel.TYPE_MINUS:
+				case Kernel.TYPE_TIMES:
+				case Kernel.TYPE_DIV:
+				case Kernel.TYPE_MODULO:
+				case Kernel.TYPE_POWER:
+				case Kernel.TYPE_AND:
+				case Kernel.TYPE_OR:
+				case Kernel.TYPE_XOR:
+				case Kernel.TYPE_LSHIFT:
+				case Kernel.TYPE_RSHIFT:
+				case Kernel.TYPE_RSHIFTPAD:
+					return true;
+				default:
+					return false;
+			}
+		}
+		
+		@Override
+		protected String getTypeErrorText(int tokenType)
+		{
+			switch (tokenType)
+			{
+				case Kernel.TYPE_LPAREN:
+					return "'('";
+				case Kernel.TYPE_RPAREN:
+					return "')'";
+				case Kernel.TYPE_LBRACE:
+					return "'{'";
+				case Kernel.TYPE_RBRACE:
+					return "'}'";
+				case Kernel.TYPE_LBRACK:
+					return "'['";
+				case Kernel.TYPE_RBRACK:
+					return "']'";
+				case Kernel.TYPE_SEMICOLON:
+					return "';'";
+				case Kernel.TYPE_COLON:
+					return "':'";
+				case Kernel.TYPE_COMMA:
+					return "','";
+				default:
+					return "";
+			}
+		}
+		
+	}
+	
+	/*
+			if (matchType(Kernel.TYPE_LBRACK))
 			{
 				AbstractVector<ArcheTextValue> list = new List<ArcheTextValue>();
 				if (!parseListBody(list))
@@ -851,108 +1032,5 @@ public final class ArcheTextReader
 				addErrorMessage("Expected object, list, set, string, numeric value, boolean value, or null.");
 				return false;
 			}
-		}
-
-		
-		/*
-		 *	<ListBody> :=
-		 *		<Value> <ListBodyPrime>
-		 *		[e]
-		 */
-		private boolean parseListBody(AbstractVector<ArcheTextValue> list)
-		{
-			if (parseValue(Combinator.SET))
-			{
-				list.add(currentValue);
-				return parseListBodyPrime(list);
-			}
-			
-			return true;
-		}
-
-		
-		/*
-		 *	<ListBodyPrime> :=
-		 *		"," <Value> <SetBodyPrime>
-		 *		[e]
-		 */
-		private boolean parseListBodyPrime(AbstractVector<ArcheTextValue> list)
-		{
-			if (matchType(Kernel.TYPE_COMMA))
-			{
-				if (!parseValue(Combinator.SET))
-					return false;
-				list.add(currentValue);
-				return parseListBodyPrime(list);
-			}
-			
-			return true;
-		}
-		
-		
-		/*
-		 *	<SetBody> :=
-		 *		<Value> <SetBodyPrime>
-		 *		[e]
-		 */
-		private boolean parseSetBody(AbstractSet<ArcheTextValue> set)
-		{
-			if (parseValue(Combinator.SET))
-			{
-				set.put(currentValue);
-				return parseSetBodyPrime(set);
-			}
-			
-			return true;
-		}
-		
-		
-		/*
-		 *	<SetBodyPrime> :=
-		 *		"," <Value> <SetBodyPrime>
-		 *		[e]
-		 */
-		private boolean parseSetBodyPrime(AbstractSet<ArcheTextValue> set)
-		{
-			if (matchType(Kernel.TYPE_COMMA))
-			{
-				if (!parseValue(Combinator.SET))
-					return false;
-				set.put(currentValue);
-				return parseSetBodyPrime(set);
-			}
-			return true;
-		}
-		
-		
-		@Override
-		protected String getTypeErrorText(int tokenType)
-		{
-			switch (tokenType)
-			{
-				case Kernel.TYPE_LPAREN:
-					return "'('";
-				case Kernel.TYPE_RPAREN:
-					return "')'";
-				case Kernel.TYPE_LBRACE:
-					return "'{'";
-				case Kernel.TYPE_RBRACE:
-					return "'}'";
-				case Kernel.TYPE_LBRACK:
-					return "'['";
-				case Kernel.TYPE_RBRACK:
-					return "']'";
-				case Kernel.TYPE_SEMICOLON:
-					return "';'";
-				case Kernel.TYPE_COLON:
-					return "':'";
-				case Kernel.TYPE_COMMA:
-					return "','";
-				default:
-					return "";
-			}
-		}
-	}
-	
-	
+	 */
 }

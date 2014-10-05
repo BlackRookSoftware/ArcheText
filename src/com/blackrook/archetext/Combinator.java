@@ -238,7 +238,7 @@ public enum Combinator
 		}
 	},
 	
-	POWER("^=")
+	POWER("'=")
 	{
 		@Override
 		public ArcheTextValue combine(ArcheTextValue operand, ArcheTextValue target)
@@ -378,6 +378,68 @@ public enum Combinator
 			}
 			
 			long result = targbits | operandbits;
+			Type maxtype = target.type.ordinal() > operand.type.ordinal() ? target.type : operand.type;
+			
+			switch (maxtype)
+			{
+				case BOOLEAN:
+					return new ArcheTextValue(Type.BOOLEAN, result != 0L);
+				default:
+				case INTEGER:
+					return new ArcheTextValue(Type.INTEGER, result);
+				case FLOAT:
+					return new ArcheTextValue(Type.FLOAT, Double.longBitsToDouble(result));
+			}
+		}
+	},
+	
+	BITWISEXOR("^=")
+	{
+		@Override
+		@SuppressWarnings("unchecked")
+		public ArcheTextValue combine(ArcheTextValue operand, ArcheTextValue target)
+		{
+			if (target == null)
+				return operand.copy();
+			
+			// set and set
+			if (target.type == Type.SET && operand.type == Type.SET)
+			{
+				return new ArcheTextValue(Type.SET, Hash.xor((Hash<ArcheTextValue>)target.value, (Hash<ArcheTextValue>)operand.value));
+			}
+			
+			operatorObjectCheck("bitwise-xor", operand, target);
+
+			long targbits = 0L;
+			long operandbits = 0L;
+			
+			switch (target.type)
+			{
+				case BOOLEAN:
+					targbits = target.getBoolean() ? -1L : 0L;
+					break;
+				case INTEGER:
+					targbits = target.getLong();
+					break;
+				case FLOAT:
+					targbits = Double.doubleToRawLongBits(target.getDouble());
+					break;
+			}
+			
+			switch (operand.type)
+			{
+				case BOOLEAN:
+					operandbits = operand.getBoolean() ? -1L : 0L;
+					break;
+				case INTEGER:
+					operandbits = operand.getLong();
+					break;
+				case FLOAT:
+					operandbits = Double.doubleToRawLongBits(operand.getDouble());
+					break;
+			}
+			
+			long result = targbits ^ operandbits;
 			Type maxtype = target.type.ordinal() > operand.type.ordinal() ? target.type : operand.type;
 			
 			switch (maxtype)
