@@ -13,7 +13,8 @@ triple : pair
 
 pair 2 : pair
 {
-	y = 3;
+	y = -3;
+	x = y + 34;
 }
 
 

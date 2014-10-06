@@ -23,7 +23,7 @@ import com.blackrook.lang.Lexer;
 import com.blackrook.lang.Parser;
 
 /**
- * TODO: Support expressions, object references in objects.
+ * A reader class for reading in ArcheText data and creating objects from it.
  * @author Matthew Tropiano
  */
 public final class ArcheTextReader
@@ -348,7 +348,6 @@ public final class ArcheTextReader
 		static final int TYPE_LSHIFT = 24;
 		static final int TYPE_RSHIFT = 25;
 		static final int TYPE_RSHIFTPAD = 26;
-		static final int TYPE_REF = 26;
 
 		static final int TYPE_TRUE = 40;
 		static final int TYPE_FALSE = 41;
@@ -378,7 +377,6 @@ public final class ArcheTextReader
 			addDelimiter("<-", TYPE_LEFTARROW);
 
 			addDelimiter("@", TYPE_AT);
-			addDelimiter(".", TYPE_REF);
 			addDelimiter("+", TYPE_PLUS);
 			addDelimiter("-", TYPE_MINUS);
 			addDelimiter("*", TYPE_TIMES);
@@ -428,8 +426,8 @@ public final class ArcheTextReader
 		RSHIFT		(3, false),
 		RSHIFTPAD	(3, false),
 
-		PLUS		(4, false),
-		MINUS		(4, false),
+		ADD			(4, false),
+		SUBTRACT	(4, false),
 		
 		MULTIPLY	(5, false),
 		DIVIDE		(5, false),
@@ -446,7 +444,7 @@ public final class ArcheTextReader
 		LLIST		(8, true),
 		LSET		(8, true),
 
-		REFERENCE	(9, false),
+		//REFERENCE	(9, false),
 		;
 		
 		private int precedence;
@@ -457,9 +455,6 @@ public final class ArcheTextReader
 			this.rightAssociative = rightAssociative;
 		}
 
-		public int getPrecedence() {return precedence;}
-		public boolean isRightAssociative() {return rightAssociative;}
-		
 	}
 
 	/**
@@ -517,17 +512,12 @@ public final class ArcheTextReader
 		private List<ArcheTextObject> currentObjectParents;
 		/** Current object reference flatten flag. */
 		private boolean currentObjectParentsFlatten;
-
-		/** Expression value stack. */
-		private Stack<ArcheTextValue> valueStack;
-		/** Expression operator stack. */
-		private Stack<Operator> operatorStack;
+		/** Current value from a parseValue() call. */
+		private ArcheTextValue currentValue;
 		
 		private ATParser(ATLexer lexer)
 		{
 			super(lexer);
-			valueStack = new Stack<ArcheTextValue>();
-			operatorStack = new Stack<Operator>();
 		}
 		
 		/**
@@ -775,10 +765,10 @@ public final class ArcheTextReader
 				Combinator combinator = Kernel.ASSIGNMENTOPERATOR_MAP.get(operator);
 				nextToken();
 				
-				if (!parseValue(combinator))
+				if (!parseValue())
 					return false;
 				
-				object.setField(member, combinator, valueStack.pop());
+				object.setField(member, combinator, currentValue);
 				
 				if (!matchTypeStrict(Kernel.TYPE_SEMICOLON))
 					return false;
@@ -793,10 +783,9 @@ public final class ArcheTextReader
 		/*
 		 *	<Value> :=
 		 *		"@" <ATDeclaration>
-		 *		"{" <ATFieldList> "}"
 		 *		[EXPRESSION]
 		 */
-		private boolean parseValue(Combinator combinator)
+		private boolean parseValue()
 		{
 			
 			if (matchType(Kernel.TYPE_AT))
@@ -812,7 +801,7 @@ public final class ArcheTextReader
 					return false;
 				}
 
-				valueStack.push(new ArcheTextValue(Type.OBJECT, objectRef));
+				currentValue = new ArcheTextValue(Type.OBJECT, objectRef);
 				
 				return true;
 			}
@@ -828,7 +817,7 @@ public final class ArcheTextReader
 					return false;
 				}
 
-				valueStack.push(new ArcheTextValue(Type.OBJECT, object));
+				currentValue = new ArcheTextValue(Type.OBJECT, object);
 				
 				return true;
 			}
@@ -837,22 +826,490 @@ public final class ArcheTextReader
 		}
 		
 		/*
-		 * 
+		 *	<ListBody> :=
+		 *		<Value> <ListBodyPrime>
+		 *		[e]
+		 */
+		private boolean parseListBody(AbstractVector<ArcheTextValue> list)
+		{
+			if (parseValue())
+			{
+				list.add(currentValue);
+				return parseListBodyPrime(list);
+			}
+			
+			return true;
+		}
+
+		
+		/*
+		 *	<ListBodyPrime> :=
+		 *		"," <Value> <SetBodyPrime>
+		 *		[e]
+		 */
+		private boolean parseListBodyPrime(AbstractVector<ArcheTextValue> list)
+		{
+			if (matchType(Kernel.TYPE_COMMA))
+			{
+				if (!parseValue())
+					return false;
+				list.add(currentValue);
+				return parseListBodyPrime(list);
+			}
+			
+			return true;
+		}
+		
+		
+		/*
+		 *	<SetBody> :=
+		 *		<Value> <SetBodyPrime>
+		 *		[e]
+		 */
+		private boolean parseSetBody(AbstractSet<ArcheTextValue> set)
+		{
+			if (parseValue())
+			{
+				set.put(currentValue);
+				return parseSetBodyPrime(set);
+			}
+			
+			return true;
+		}
+		
+		
+		/*
+		 *	<SetBodyPrime> :=
+		 *		"," <Value> <SetBodyPrime>
+		 *		[e]
+		 */
+		private boolean parseSetBodyPrime(AbstractSet<ArcheTextValue> set)
+		{
+			if (matchType(Kernel.TYPE_COMMA))
+			{
+				if (!parseValue())
+					return false;
+				set.put(currentValue);
+				return parseSetBodyPrime(set);
+			}
+			return true;
+		}
+		
+		
+		/*
+		 * Parses an infix expression.
+		 * May throw an ArcheTextOperationException if some values cannot be calculated or combined. 
 		 */
 		private boolean parseExpression()
 		{
+			// Expression value stack.
+			Stack<ArcheTextValue> valueStack = new Stack<ArcheTextValue>();
+			// Expression operator stack.
+			Stack<Operator> operatorStack = new Stack<Operator>();
+
 			// was the last read token a value?
 			boolean lastWasValue = false;
+			boolean keepGoing = true;
 			
-			// TODO: Finish.
+			while (keepGoing)
+			{
+				if (currentType(Lexer.TYPE_IDENTIFIER))
+				{
+					if (lastWasValue)
+					{
+						addErrorMessage("Expression error - expected operator.");
+						return false;
+					}
+					
+					String identname = currentToken().getLexeme();
+					
+					ArcheTextValue val = currentObject.getField(identname);
+					if (val != null)
+						val = val.copy();
+
+					valueStack.push(val);
+					
+					nextToken();
+					lastWasValue = true;
+				}
+				else if (matchType(Kernel.TYPE_LBRACE))
+				{
+					if (lastWasValue)
+					{
+						addErrorMessage("Expression error - expected operator.");
+						return false;
+					}
+					
+					ArcheTextObject object = new ArcheTextObject();
+					if (!parseATFieldList(object))
+						return false;
+					
+					if (!matchType(Kernel.TYPE_RBRACE))
+					{
+						addErrorMessage("Expected end of object declaration ('}').");
+						return false;
+					}
+
+					valueStack.push(new ArcheTextValue(Type.OBJECT, object));
+					lastWasValue = true;
+				}
+				else if (matchType(Kernel.TYPE_LBRACK))
+				{
+					if (lastWasValue)
+					{
+						addErrorMessage("Expression error - expected operator.");
+						return false;
+					}
+					
+					List<ArcheTextValue> list = new List<ArcheTextValue>(); 
+					
+					if (!parseListBody(list))
+						return false;
+					
+					if (!matchType(Kernel.TYPE_RBRACK))
+					{
+						addErrorMessage("Expected end of list declaration (']').");
+						return false;
+					}
+
+					valueStack.push(new ArcheTextValue(Type.LIST, list));
+					lastWasValue = true;
+				}
+				else if (matchType(Kernel.TYPE_LANGLEBRACK))
+				{
+					if (lastWasValue)
+					{
+						addErrorMessage("Expression error - expected operator.");
+						return false;
+					}
+					
+					Hash<ArcheTextValue> set = new Hash<ArcheTextValue>(); 
+					
+					if (!parseSetBody(set))
+						return false;
+					
+					if (!matchType(Kernel.TYPE_RANGLEBRACK))
+					{
+						addErrorMessage("Expected end of set declaration ('>').");
+						return false;
+					}
+
+					valueStack.push(new ArcheTextValue(Type.SET, set));
+					lastWasValue = true;
+				}
+				else if (matchType(Kernel.TYPE_LPAREN))
+				{
+					if (lastWasValue)
+					{
+						addErrorMessage("Expression error - expected operator.");
+						return false;
+					}
+					
+					if (!parseValue())
+						return false;
+					
+					if (!matchType(Kernel.TYPE_RPAREN))
+					{
+						addErrorMessage("Expected ending parenthesis (')').");
+						return false;
+					}
+
+					valueStack.push(currentValue);
+					lastWasValue = true;
+				}
+				else if (isValidLiteralType())
+				{
+					if (lastWasValue)
+					{
+						addErrorMessage("Expression error - expected operator.");
+						return false;
+					}
+					
+					tokenToValue();
+					valueStack.push(currentValue);
+					lastWasValue = true;
+				}
+				else if (lastWasValue)
+				{
+					if (isBinaryOperatorType())
+					{
+						Operator nextOperator = null;
+						
+						switch (currentToken().getType())
+						{
+							case Kernel.TYPE_PLUS:
+								nextOperator = Operator.ADD;
+								break;
+							case Kernel.TYPE_MINUS:
+								nextOperator = Operator.SUBTRACT;
+								break;
+							case Kernel.TYPE_TIMES:
+								nextOperator = Operator.MULTIPLY;
+								break;
+							case Kernel.TYPE_DIV:
+								nextOperator = Operator.DIVIDE;
+								break;
+							case Kernel.TYPE_MODULO:
+								nextOperator = Operator.MODULO;
+								break;
+							case Kernel.TYPE_POWER:
+								nextOperator = Operator.POWER;
+								break;
+							case Kernel.TYPE_AND:
+								nextOperator = Operator.AND;
+								break;
+							case Kernel.TYPE_OR:
+								nextOperator = Operator.OR;
+								break;
+							case Kernel.TYPE_XOR:
+								nextOperator = Operator.XOR;
+								break;
+							case Kernel.TYPE_LSHIFT:
+								nextOperator = Operator.LSHIFT;
+								break;
+							case Kernel.TYPE_RSHIFT:
+								nextOperator = Operator.RSHIFT;
+								break;
+							case Kernel.TYPE_RSHIFTPAD:
+								nextOperator = Operator.RSHIFTPAD;
+								break;
+							default:
+								throw new ArcheTextParseException("Internal error - unexpected binary operator miss.");
+						}
+						
+						nextToken();
+
+						if (!operatorReduce(operatorStack, valueStack, nextOperator))
+							return false;
+						
+						operatorStack.push(nextOperator);
+						lastWasValue = false;
+					}
+					else // end on a value
+					{
+						keepGoing = false;
+					}
+				}
+				else if (isUnaryOperatorType())
+				{
+					switch (currentToken().getType())
+					{
+						case Kernel.TYPE_MINUS:
+							operatorStack.push(Operator.NEGATE);
+							break;
+						case Kernel.TYPE_PLUS:
+							operatorStack.push(Operator.ABSOLUTE);
+							break;
+						case Kernel.TYPE_BITNOT:
+							operatorStack.push(Operator.BITNOT);
+							break;
+						case Kernel.TYPE_NOT:
+							operatorStack.push(Operator.NOT);
+							break;
+						default:
+							throw new ArcheTextParseException("Internal error - unexpected unary operator miss.");
+					}
+					
+					nextToken();
+					lastWasValue = false;
+				}
+				else
+				{
+					addErrorMessage("Expression error - expected value after operator.");
+					return false;
+				}
+				
+			}
+			
+			// end of expression - reduce.
+			while (!operatorStack.isEmpty())
+			{
+				if (!expressionReduce(operatorStack, valueStack))
+					return false;
+			}
 			
 			if (valueStack.isEmpty())
 			{
-				addErrorMessage("Expected expression.");
+				addErrorMessage("Expected valid expression.");
 				return false;
 			}
 
+			currentValue = valueStack.pop();
 			return true;
+		}
+
+		// keeps reducing until the input operator is of greater precedence.
+		private boolean operatorReduce(Stack<Operator> operatorStack, Stack<ArcheTextValue> valueStack, Operator operator)
+		{
+			Operator top = operatorStack.peek();
+			while (top != null && (top.precedence > operator.precedence || (top.precedence == operator.precedence && !operator.rightAssociative)))
+			{
+				if (!expressionReduce(operatorStack, valueStack))
+					return false;
+				top = operatorStack.peek();
+			}
+			
+			return true;
+		}
+		
+		// Performs an operator reduction.
+		private boolean expressionReduce(Stack<Operator> operatorStack, Stack<ArcheTextValue> valueStack)
+		{
+			if (operatorStack.isEmpty())
+				throw new ArcheTextParseException("Internal error - operator stack must have one operator in it.");
+
+			Operator operator = operatorStack.pop();
+			
+			switch (operator)
+			{
+				case NOT:
+				case NEGATE:
+				case BITNOT:
+				case ABSOLUTE:
+				{
+					if (valueStack.size() < 1)
+					{
+						addErrorMessage("Bad expression - operator requires at least one operand.");
+						return false;
+					}
+					
+					ArcheTextValue value = valueStack.pop();
+					
+					switch (operator)
+					{
+						case NOT:
+							valueStack.push(value.not());
+							break;
+						case NEGATE:
+							valueStack.push(value.negate());
+							break;
+						case BITNOT:
+							valueStack.push(value.bitwiseNot());
+							break;
+						case ABSOLUTE:
+							valueStack.push(value.absolute());
+							break;
+						default:
+							throw new ArcheTextParseException("Internal error - unary operator state should not have been reached.");
+					}
+					
+					return true;
+				}
+				
+				case ADD:
+				case SUBTRACT:
+				case MULTIPLY:
+				case DIVIDE:
+				case MODULO:
+				case POWER:
+				case AND:
+				case OR:
+				case XOR:
+				case LSHIFT:
+				case RSHIFT:
+				case RSHIFTPAD:
+				{
+					if (valueStack.size() < 2)
+					{
+						addErrorMessage("Bad expression - operator requires at least two operands.");
+						return false;
+					}
+
+					ArcheTextValue operand = valueStack.pop();
+					ArcheTextValue target = valueStack.pop();
+
+					switch (operator)
+					{
+						case ADD:
+							valueStack.push(Combinator.ADD.combine(operand, target));
+							break;
+						case SUBTRACT:
+							valueStack.push(Combinator.SUBTRACT.combine(operand, target));
+							break;
+						case MULTIPLY:
+							valueStack.push(Combinator.MULTIPLY.combine(operand, target));
+							break;
+						case DIVIDE:
+							valueStack.push(Combinator.DIVISION.combine(operand, target));
+							break;
+						case MODULO:
+							valueStack.push(Combinator.MODULO.combine(operand, target));
+							break;
+						case POWER:
+							valueStack.push(Combinator.POWER.combine(operand, target));
+							break;
+						case AND:
+							valueStack.push(Combinator.BITWISEAND.combine(operand, target));
+							break;
+						case OR:
+							valueStack.push(Combinator.BITWISEOR.combine(operand, target));
+							break;
+						case XOR:
+							valueStack.push(Combinator.BITWISEXOR.combine(operand, target));
+							break;
+						case LSHIFT:
+							valueStack.push(Combinator.LEFTSHIFT.combine(operand, target));
+							break;
+						case RSHIFT:
+							valueStack.push(Combinator.RIGHTSHIFT.combine(operand, target));
+							break;
+						case RSHIFTPAD:
+							valueStack.push(Combinator.RIGHTPADDINGSHIFT.combine(operand, target));
+							break;
+						default:
+							throw new ArcheTextParseException("Internal error - binary operator state should not have been reached.");
+					}
+					
+					return true;
+				}
+				
+				default:
+					throw new ArcheTextParseException("Internal error - bad operator.");
+				
+			}
+		}
+		
+		// Token to value.
+		private boolean tokenToValue()
+		{
+			if (currentType(Lexer.TYPE_STRING))
+			{
+				currentValue = new ArcheTextValue(Type.STRING, currentToken().getLexeme());
+				nextToken();
+				return true;
+			}
+			else if (currentType(Lexer.TYPE_NUMBER))
+			{
+				String lexeme = currentToken().getLexeme();
+				if (lexeme.startsWith("0X") || lexeme.startsWith("0x"))
+					currentValue = (new ArcheTextValue(Type.INTEGER, Long.parseLong(lexeme.substring(2), 16)));
+				else if (lexeme.contains("."))
+					currentValue = (new ArcheTextValue(Type.FLOAT, Double.parseDouble(lexeme)));
+				else
+					currentValue = (new ArcheTextValue(Type.INTEGER, Long.parseLong(lexeme)));
+				nextToken();
+				return true;
+			}
+			else if (currentType(Kernel.TYPE_TRUE))
+			{
+				currentValue = (new ArcheTextValue(Type.BOOLEAN, true));
+				nextToken();
+				return true;
+			}
+			else if (currentType(Kernel.TYPE_FALSE))
+			{
+				currentValue = (new ArcheTextValue(Type.BOOLEAN, false));
+				nextToken();
+				return true;
+			}
+			else if (currentType(Kernel.TYPE_NULL))
+			{
+				currentValue = (new ArcheTextValue(Type.OBJECT, null));
+				nextToken();
+				return true;
+			}
+			else
+				throw new ArcheTextParseException("Internal error - unexpected token type.");
 		}
 		
 		// Return true if token type can be a unary operator.
@@ -872,32 +1329,10 @@ public final class ArcheTextReader
 		}
 		
 		// Return true if token type can be a unary operator.
-		private boolean isValidSetType()
-		{
-			switch (currentToken().getType())
-			{
-				case Kernel.TYPE_LBRACE:
-				case Kernel.TYPE_RBRACE:
-				case Kernel.TYPE_LANGLEBRACK:
-				case Kernel.TYPE_RANGLEBRACK:
-				case Kernel.TYPE_LBRACK:
-				case Kernel.TYPE_RBRACK:
-				case Kernel.TYPE_LPAREN:
-				case Kernel.TYPE_RPAREN:
-				case Kernel.TYPE_COMMA:
-				case Kernel.TYPE_SEMICOLON:
-					return true;
-				default:
-					return false;
-			}
-		}
-		
-		// Return true if token type can be a unary operator.
 		private boolean isUnaryOperatorType()
 		{
 			switch (currentToken().getType())
 			{
-				case Kernel.TYPE_REF:
 				case Kernel.TYPE_MINUS:
 				case Kernel.TYPE_PLUS:
 				case Kernel.TYPE_BITNOT:
@@ -957,80 +1392,9 @@ public final class ArcheTextReader
 				default:
 					return "";
 			}
+			
 		}
 		
 	}
 	
-	/*
-			if (matchType(Kernel.TYPE_LBRACK))
-			{
-				AbstractVector<ArcheTextValue> list = new List<ArcheTextValue>();
-				if (!parseListBody(list))
-					return false;
-				
-				if (!matchType(Kernel.TYPE_RBRACK))
-				{
-					addErrorMessage("Expected ',' or end of list declaration (']').");
-					return false;
-				}
-				
-				currentValue = new ArcheTextValue(Type.LIST, list);
-
-				return true;
-			}
-			else if (matchType(Kernel.TYPE_LANGLEBRACK))
-			{
-				AbstractSet<ArcheTextValue> set = new Hash<ArcheTextValue>();
-				if (!parseSetBody(set))
-					return false;
-				
-				if (!matchType(Kernel.TYPE_RANGLEBRACK))
-				{
-					addErrorMessage("Expected ',' or end of set declaration ('>').");
-					return false;
-				}
-				
-				currentValue = new ArcheTextValue(Type.SET, set);
-
-				return true;
-			}
-			else if (currentType(Lexer.TYPE_STRING))
-			{
-				currentValue = new ArcheTextValue(Type.STRING, currentToken().getLexeme());
-				nextToken();
-				return true;
-			}
-			else if (currentType(Lexer.TYPE_NUMBER))
-			{
-				String lexeme = currentToken().getLexeme();
-				if (lexeme.startsWith("0X") || lexeme.startsWith("0x"))
-					currentValue = new ArcheTextValue(Type.INTEGER, Long.parseLong(lexeme.substring(2), 16));
-				else if (lexeme.contains("."))
-					currentValue = new ArcheTextValue(Type.FLOAT, Double.parseDouble(lexeme));
-				else
-					currentValue = new ArcheTextValue(Type.INTEGER, Long.parseLong(lexeme));
-				nextToken();
-				return true;
-			}
-			else if (matchType(Kernel.TYPE_TRUE))
-			{
-				currentValue = new ArcheTextValue(Type.BOOLEAN, true);
-				return true;
-			}
-			else if (matchType(Kernel.TYPE_FALSE))
-			{
-				currentValue = new ArcheTextValue(Type.BOOLEAN, false);
-				return true;
-			}
-			else if (matchType(Kernel.TYPE_NULL))
-			{
-				currentValue = new ArcheTextValue(Type.OBJECT, null);
-				return true;
-			}
-			else
-			{
-				addErrorMessage("Expected object, list, set, string, numeric value, boolean value, or null.");
-				return false;
-			}
-	 */
 }
