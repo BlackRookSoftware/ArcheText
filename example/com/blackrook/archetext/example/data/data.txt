@@ -1,102 +1,21 @@
-#define INIT_SET <1, 3, 5>
-
-pair
+test
 {
-	x = 0;
-	y = 0;
-}
-
-triple : pair
-{
-	z = 0;
-}
-
-pair 2 : pair
-{
-	y = -3;
-	x = y + 34;
-}
-
-
-junk
-{
-	bool = false;
-	int = 45;
-	flt = 8.99;
-	str = "Hello";
-	set = INIT_SET;
-	list = [1,2,3];
-	obj = {
-		butt = "balls";
-	};
-}
-
-junk 2 : junk
-{
-	bool += true;
-	int += 5;
-	flt += 0.01;
-	str += ", world!";
-	set += <1,2,3,4>;
-	list += [4,5,6];
-}
-
-junk 3 : junk
-{
-	bool -= true;
-	int -= 5;
-	flt -= 0.01;
-	str -= "Hell";
-	set -= <1,2,3,4>;
-	list -= [1,2,4];
-}
-
-junk 4 : junk
-{
-	int *= 5;
-	flt *= 0.01;
-}
-
-junk 5 : junk
-{
-	int /= 5;
-	flt /= 2.0;
-}
-
-junk 6 : junk
-{
-	int ^= 5;
-	flt ^= 2.0;
-}
-
-junk 7 : junk
-{
-	int &= 5;
-	flt &= 2.0;
-	set &= <1,2,3,4>;
-}
-
-junk 8 : junk
-{
-	int |= 255;
-	flt |= 2.0;
-	set |= <1,2,3,4>;
-}
-
-junk 9 : junk
-{
-	int <<= 3;
-	list <<= 2;
-}
-
-junk 10 : junk
-{
-	int >>= 3;
-	list >>= 2;
-}
-
-junk 11 : junk
-{
-	int >>>= 3;
-	list >>>= 2;
+	x = 1 + 2 * 8 + 8 / -3;
+	x2 = 1 - ~2;
+	y = 1 + 2 * 3;
+	z = (1 + 2) * 3;
+	w = 20 / 3;
+	v = 20.0 / 3;
+	s = 20 % 3;
+	t = 20.0 % 3;
+	u = <1, 2, 5> - <5, 6, 7>;
+	r = [<1,2>, 3, 4] + [5,6,7,8,9,0, 0x05f] - (90 + 5) - 6 - 7;
+	q = !(true & false);
+	p = 4 ' 3 ' 2;
+	n = [
+		true & true,
+		true & false,
+		false & true,
+		false & false
+	];
 }

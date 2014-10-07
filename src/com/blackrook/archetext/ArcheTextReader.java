@@ -9,6 +9,7 @@ import java.io.Reader;
 import java.io.StringReader;
 
 import com.blackrook.archetext.ArcheTextValue.Type;
+import com.blackrook.archetext.exception.ArcheTextOperationException;
 import com.blackrook.archetext.exception.ArcheTextParseException;
 import com.blackrook.commons.AbstractSet;
 import com.blackrook.commons.AbstractVector;
@@ -532,9 +533,14 @@ public final class ArcheTextReader
 			
 			// keep parsing entries.
 			boolean noError = true;
-			while (currentToken() != null && (noError = parseATEntries()))
-			{
-				targetRoot.add(currentObject);
+			try {
+				while (currentToken() != null && (noError = parseATEntries()))
+				{
+					targetRoot.add(currentObject);
+				}
+			} catch (ArcheTextOperationException e) {
+				addErrorMessage("Error in expression: "+e.getLocalizedMessage());
+				noError = false;
 			}
 			
 			if (!noError) // awkward, I know.

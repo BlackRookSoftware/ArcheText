@@ -1,6 +1,7 @@
 package com.blackrook.archetext;
 
 import java.lang.reflect.Array;
+import java.util.Iterator;
 
 import com.blackrook.commons.Common;
 import com.blackrook.commons.ObjectPair;
@@ -16,6 +17,7 @@ public class ArcheTextRoot
 {
 	
 	private static final ArcheTextObject[] NO_OBJECTS = new ArcheTextObject[0];
+	private static final String[] NO_TYPES = new String[0];
 	
 	/**
 	 * An object's set of descendants - default and named. 
@@ -134,6 +136,22 @@ public class ArcheTextRoot
 			return null;
 		
 		return set.get(name);
+	}
+	
+	/**
+	 * Returns all types that this root contains.
+	 */
+	public String[] getTypes()
+	{
+		if (Common.isEmpty(descendants))
+			return NO_TYPES;
+		
+		String[] out = new String[descendants.size()];
+		Iterator<String> it = descendants.keyIterator();
+		int i = 0;
+		while (it.hasNext())
+			out[i++] = it.next();
+		return out;
 	}
 	
 	/**
