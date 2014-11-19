@@ -92,6 +92,8 @@ public final class ArcheTextReader
 		}
 	};
 	
+	private ArcheTextReader() {}
+	
 	/**
 	 * Reads ArcheText objects into a new root from a starting text file.
 	 * Note: Calls apply() with a new root.
