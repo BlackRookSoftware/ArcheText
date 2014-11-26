@@ -1,0 +1,24 @@
+persontype "Male"
+{
+	sex = "MALE";
+}
+
+person "Matthew"
+{
+	age = 6;
+	sex = "MALE";
+	location = "Scranton, PA";
+}
+
+person "Bob" : persontype "Male"
+{
+	age = 13;
+	location = "Scranton, PA";
+}
+
+person "Matt's Older Sister" : person "Matthew"
+{
+	age += 3;
+	sex = "FEMALE";
+}
+

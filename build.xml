@@ -23,7 +23,10 @@
 	<property name="project.javadoc.title" value="Black Rook ArcheText" />
 	<property name="project.classpath" value="${common.lib}${S}${common.lang.lib}" />
 	<property name="project.javadoc.packages" value="
-		"
+		com.blackrook.archetext,
+		com.blackrook.archetext.annotation,
+		com.blackrook.archetext.exception
+	"
 	/>
 	
 	<import file="build-import.xml" />

@@ -6,13 +6,28 @@ Copyright (c) 2014 Black Rook Software. All rights reserved.
 
 ### Required Libraries
 
-Black Rook Commons 2.19.0+  
+Black Rook Commons 2.20.0+  
 [https://github.com/BlackRookSoftware/Common](https://github.com/BlackRookSoftware/Common)
 
 ### Introduction
 
 This library reads and writes structured, hierarchical, textual data and 
 contains utilities to convert them to POJOs and back.
+
+This project was designed to replace DL.
+
+### Structure
+
+
+
+### Library
+
+Contained in this release is a series of libraries that allow reading, writing,
+and extracting data in ArcheText Objects, found in the com.blackrook.archetext
+package. 
+
+The ArcheTextObject class is used for the manipulation of the data once it
+has been read into Java via ArcheTextReader. 
 
 ### Other
 

@@ -385,7 +385,7 @@ public class ArcheTextObject
 	public <T extends Object> T applyToObject(T object)
 	{
 		TypeProfile<T> profile = TypeProfile.getTypeProfile((Class<T>)object.getClass());
-		Iterator<String> it = fieldNameIterator();
+		Iterator<String> it = getAvailiableFieldNames().iterator();
 		while (it.hasNext())
 		{
 			String member = it.next();

@@ -4,7 +4,7 @@ import com.blackrook.archetext.ArcheTextObject;
 import com.blackrook.archetext.ArcheTextReader;
 import com.blackrook.archetext.ArcheTextRoot;
 
-public final class ArcheTextReadExample
+public final class ReadExample
 {
 	public static void main(String[] args) throws Exception
 	{
