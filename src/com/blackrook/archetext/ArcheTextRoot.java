@@ -200,7 +200,7 @@ public class ArcheTextRoot
 	}
 
 	/**
-	 * Adds an object. Empty name is default.
+	 * Adds an object.
 	 */
 	public void add(ArcheTextObject object)
 	{
