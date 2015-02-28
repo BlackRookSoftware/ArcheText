@@ -95,26 +95,45 @@ Structures can also not even have a name attached to it like so:
 As briefly touched upon, the three main elements of every structure are 
 **types**, **names**, and **fields**.
 
-A **type** defines a structure's category. Each type is stored together in an 
+A *Type* defines a structure's category. Each type is stored together in an 
 ArcheType *root*, which is the structure that holds all structures. Each 
 structure is defined by a **type** and **name**.
 
-A **name** is an identifying name within a category that, together with a 
+A *Name* is an identifying name within a category that, together with a 
 **type**, defines a unique structure.
 
-A **field** is a member of a structure that contains a value, and this can
+A *Field* is a member of a structure that contains a value, and this can
 be manipulated by inheritance or other means.
 
 A *Type* or *Field* can only contain alphanumeric and underscore characters. 
 They cannot contain spaces, nor can they start with a number, and they cannot 
 be surrounded by quotes. The following are valid type/field names:
 
-	x y hello butt1 apple456 x5564 this_is_valid_too      
+	x 
+	y 
+	hello 
+	butt1 
+	apple456 
+	x5564 
+	this_is_valid_too      
 
-A *Name* can be any string, number, or pattern of characters. If it contains any 
-whitespace or special characters, it MUST be surrounded by quotes. Internally,
-these are all converted to strings, so *45* is equivalent to "45", as far as
-structure names go. This is VERY important, in terms of inheritance.
+A *Name* can be any string, number, or a token that is a valid *type* or *field*. If it 
+contains any whitespace or other special characters, it MUST be surrounded by quotes. 
+Internally, these are all converted to strings, so *45* is equivalent to "45", as far as
+structure names go. This is VERY important, in terms of inheritance. The following
+are valid names:
+
+	"apple" 
+	pear 
+	orange 
+	_tomato 
+	100 
+	2.56 
+	"green tea"
+
+#### Fields and Values
+
+
 
 #### Inheritance
 
