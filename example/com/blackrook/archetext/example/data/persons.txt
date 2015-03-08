@@ -16,9 +16,9 @@ person "Bob" : persontype "Male"
 	location = "Scranton, PA";
 }
 
-person "Matt's Older Sister" : person "Matthew"
+person "Matt's Younger Sister" : person "Matthew"
 {
-	age += 3;
+	age -= 3;
 	sex = "FEMALE";
 }
 
