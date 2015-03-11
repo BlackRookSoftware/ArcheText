@@ -59,7 +59,7 @@ the above:
 
 ...but that way isn't nearly as human-readable.
 
-If you so wished, you could create a structure without any fields in it, like so:
+If you wished, you could create a structure without any fields in it, like so:
 
 	object "Empty";
 
@@ -133,7 +133,55 @@ are valid names:
 
 #### Fields and Values
 
+A *Field* is defined in an object that is assigned a value. Values can have different *types*,
+which affects how they are interpreted or converted.
 
+**Boolean** - Holds only *true* and *false*.
+
+	true
+	false
+   
+**Integer** - Whole numbers, no decimal point. 64-bit precision. Can be expressed as hexadecimal.
+
+	5
+	424
+	6577
+	0xaf44534
+	0x8000dad3
+
+**Float** - Floating-point decimal numbers. 64-bit precision.
+
+	5.0
+	0.5565
+	9.5453112
+	0.00000004
+
+**String** - A quote-surrounded string of characters. Can contain characters escaped using backslashes.
+
+	"apple"
+	"pear"
+	"this is a string"
+	"This has special characters \\ \n \t"
+
+**List** - A square bracket-surrounded, comma-separated list of other values. Lists can contain any type and can contain duplicate entries.
+
+	[0, 1, 2, 2, 4, 6]
+	["apple", "pear", "orange"]
+	[0, 0.2, 5.8, false]
+	[[0, 1, 3], 7, [false, true, 6767]]
+
+**Set** - An angle-bracket-surrounded, comma-separated list of other values. Sets can contain any type, but cannot contain duplicate entries (duplicates will not be added).
+
+	<0, 1, 2, 2, 4, 6>
+	<"apple", "pear", "orange">
+	<0, 0.2, 5.8, false>
+	<<0, 1, 3>, 7, [false, true, 6767]>
+	
+**Object** - A reference or anonymously-typed object. Formatted exactly like the body of a structure.
+
+	{ x = 9; y = 5.6; z = [5, 6, 7] }
+	@pair "y"
+	
 
 #### Inheritance
 
@@ -194,7 +242,7 @@ You could make an ordered triple (x, y, z) of (1, 1, 1) by defining:
 		z = 1;
 	}
 	
-Every member in a structure need not exist in order for inheritance to work.
+Every field in a structure does not need to exist in order for inheritance to work.
 If *triple* structures *xunit* and *yunit* were defined as:
 
 	triple "xunit"
