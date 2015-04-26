@@ -8,3 +8,4 @@ build.properties
 *.ipr
 *.iml
 *.iws
+.*.*.html
