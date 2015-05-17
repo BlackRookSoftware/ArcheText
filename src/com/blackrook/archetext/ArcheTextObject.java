@@ -333,7 +333,7 @@ public class ArcheTextObject
 	 */
 	public void flatten()
 	{
-		for (String name : getAvailiableFieldNames())
+		for (String name : getAvailableFieldNames())
 			setField(name, Combinator.SET, getField(name));
 		parents = null;
 	}
@@ -342,7 +342,7 @@ public class ArcheTextObject
 	 * Returns all possible field names in this object's lineage.
 	 * @return an array of every field name.
 	 */
-	public AbstractSet<String> getAvailiableFieldNames()
+	public AbstractSet<String> getAvailableFieldNames()
 	{
 		Hash<String> nameSet = new Hash<String>(24);
 		accumFieldNames(nameSet, this);
@@ -392,7 +392,7 @@ public class ArcheTextObject
 	public <T extends Object> T applyToObject(T object)
 	{
 		TypeProfile<T> profile = TypeProfile.getTypeProfile((Class<T>)object.getClass());
-		Iterator<String> it = getAvailiableFieldNames().iterator();
+		Iterator<String> it = getAvailableFieldNames().iterator();
 		while (it.hasNext())
 		{
 			String member = it.next();
