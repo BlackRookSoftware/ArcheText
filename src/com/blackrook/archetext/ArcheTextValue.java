@@ -213,7 +213,8 @@ public final class ArcheTextValue
 			{
 				// combine
 				ArcheTextObject object = new ArcheTextObject();
-				object.cascade((ArcheTextObject)this.value);
+				if (this.value != null)
+					object.cascade((ArcheTextObject)this.value);
 				return new ArcheTextValue(Type.OBJECT, object);
 			}
 		}
