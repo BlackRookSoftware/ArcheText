@@ -34,7 +34,9 @@ public enum Combinator
 		{
 			if (target == null)
 				return operand.copy();
-			
+			if (target.isNull())
+				return null;
+
 			switch (target.type)
 			{
 				default:
@@ -93,7 +95,9 @@ public enum Combinator
 		{
 			if (target == null)
 				return operand.copy();
-			
+			if (target.isNull())
+				return null;
+
 			switch (target.type)
 			{
 				default:
@@ -147,6 +151,8 @@ public enum Combinator
 		{
 			if (target == null)
 				return operand.copy();
+			if (target.isNull())
+				return null;
 
 			operatorObjectCheck("multiplication", operand, target);
 
@@ -178,6 +184,8 @@ public enum Combinator
 		{
 			if (target == null)
 				return operand.copy();
+			if (target.isNull())
+				return null;
 
 			operatorObjectCheck("division", operand, target);
 			
@@ -215,7 +223,9 @@ public enum Combinator
 		{
 			if (target == null)
 				return operand.copy();
-			
+			if (target.isNull())
+				return null;
+
 			operatorObjectCheck("modulo", operand, target);
 
 			if (target.type.compareTo(operand.type) < 0)
@@ -252,7 +262,9 @@ public enum Combinator
 		{
 			if (target == null)
 				return operand.copy();
-			
+			if (target.isNull())
+				return null;
+
 			operatorObjectCheck("power", operand, target);
 
 			if (target.type.compareTo(operand.type) < 0)
@@ -284,7 +296,9 @@ public enum Combinator
 		{
 			if (target == null)
 				return operand.copy();
-			
+			if (target.isNull())
+				return null;
+
 			// set and set
 			if (target.type == Type.SET && operand.type == Type.SET)
 			{
@@ -346,7 +360,9 @@ public enum Combinator
 		{
 			if (target == null)
 				return operand.copy();
-			
+			if (target.isNull())
+				return null;
+
 			// set and set
 			if (target.type == Type.SET && operand.type == Type.SET)
 			{
@@ -408,7 +424,9 @@ public enum Combinator
 		{
 			if (target == null)
 				return operand.copy();
-			
+			if (target.isNull())
+				return null;
+
 			// set and set
 			if (target.type == Type.SET && operand.type == Type.SET)
 			{
@@ -470,7 +488,9 @@ public enum Combinator
 		{
 			if (target == null)
 				return operand.copy();
-			
+			if (target.isNull())
+				return null;
+
 			List<ArcheTextValue> list = null;
 			long targbits = 0L;
 			int operandValue = 0;
@@ -567,7 +587,9 @@ public enum Combinator
 		{
 			if (target == null)
 				return operand.copy();
-			
+			if (target.isNull())
+				return null;
+
 			List<ArcheTextValue> list = null;
 			long targbits = 0L;
 			int operandValue = 0;
@@ -664,7 +686,9 @@ public enum Combinator
 		{
 			if (target == null)
 				return operand.copy();
-			
+			if (target.isNull())
+				return null;
+
 			List<ArcheTextValue> list = null;
 			long targbits = 0L;
 			int operandValue = 0;

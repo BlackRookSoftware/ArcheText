@@ -1319,7 +1319,7 @@ public final class ArcheTextReader
 			}
 			else if (currentType(Kernel.TYPE_NULL))
 			{
-				currentValue = (new ArcheTextValue(Type.OBJECT, null));
+				currentValue = (new ArcheTextValue(Type.NULL, null));
 				nextToken();
 				return true;
 			}

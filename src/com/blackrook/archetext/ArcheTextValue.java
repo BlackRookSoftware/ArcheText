@@ -43,7 +43,9 @@ public final class ArcheTextValue
 		/** List type. Stored as List<ArcheTextValue>. */
 		LIST,
 		/** Object type for objects, or null. Stored as HashMap<String, ArcheTextObject>, or null. */
-		OBJECT;
+		OBJECT,
+		/** Object type for null. */
+		NULL;
 	}
 
 	/** Object value type. */
@@ -64,7 +66,7 @@ public final class ArcheTextValue
 	// recalculates the hashcode.
 	private void calculateHashCode()
 	{
-		hashCode = type.hashCode() ^ (value != null ? value.hashCode() : 0);
+		hashCode = type.hashCode() ^ (!isNull() ? value.hashCode() : 0);
 	}
 
 	/**
@@ -76,7 +78,7 @@ public final class ArcheTextValue
 	public static <T> ArcheTextValue create(T object)
 	{
 		if (object == null)
-			return new ArcheTextValue(Type.OBJECT, object);
+			return new ArcheTextValue(Type.NULL, null);
 		else if (object instanceof ArcheTextObject)
 		{
 			return new ArcheTextValue(Type.OBJECT, object);
@@ -208,7 +210,6 @@ public final class ArcheTextValue
 					list.add(val.copy());
 				return new ArcheTextValue(Type.LIST, list);
 			}
-			default:
 			case OBJECT:
 			{
 				// combine
@@ -217,6 +218,8 @@ public final class ArcheTextValue
 					object.cascade((ArcheTextObject)this.value);
 				return new ArcheTextValue(Type.OBJECT, object);
 			}
+			default:
+				return new ArcheTextValue(Type.NULL, null);
 		}
 
 	}
@@ -237,24 +240,33 @@ public final class ArcheTextValue
 		return value;
 	}
 	
+	/**
+	 * Returns if this object is null-valued.
+	 * @return true if so, false if not.
+	 */
+	public boolean isNull()
+	{
+		return type == Type.NULL;
+	}
+	
 	boolean getBoolean()
 	{
-		return value != null ? ((Boolean)value) : false;  
+		return !isNull() ? ((Boolean)value) : false;  
 	}
 
 	long getLong()
 	{
-		return value != null ? ((Long)value).longValue() : 0L;  
+		return !isNull() ? ((Long)value).longValue() : 0L;  
 	}
 
 	double getDouble()
 	{
-		return value != null ? ((Double)value).doubleValue() : 0.0;  
+		return !isNull() ? ((Double)value).doubleValue() : 0.0;  
 	}
 
 	String getString()
 	{
-		return value != null ? String.valueOf(value) : null;  
+		return !isNull() ? String.valueOf(value) : null;  
 	}
 
 	/**
@@ -278,7 +290,9 @@ public final class ArcheTextValue
 	 */
 	public ArcheTextValue promoteTo(Type promotionType)
 	{
-		if (promotionType == Type.OBJECT)
+		if (promotionType == Type.NULL)
+			throw new ArcheTextOperationException("Cannot promote this value to null.");
+		else if (promotionType == Type.OBJECT)
 			throw new ArcheTextOperationException("Cannot promote this value to an Object.");
 		else if (promotionType.ordinal() < type.ordinal())
 			throw new ArcheTextOperationException("Cannot promote this value to a lesser type. Current is "+type+". Promotion type is "+promotionType+".");
