@@ -241,7 +241,7 @@ public class ArcheTextObject
 	 * The field's value is taken from THIS OBJECT, not its parents.
 	 * @param name the name of the field.
 	 */
-	protected AField getLocalField(String name)
+	AField getLocalField(String name)
 	{
 		if (fields == null)
 			return null;
