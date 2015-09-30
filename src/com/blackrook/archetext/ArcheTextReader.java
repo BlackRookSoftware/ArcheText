@@ -14,6 +14,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
+import java.util.Iterator;
 
 import com.blackrook.archetext.ArcheTextValue.Type;
 import com.blackrook.archetext.exception.ArcheTextOperationException;
@@ -23,6 +24,8 @@ import com.blackrook.commons.AbstractVector;
 import com.blackrook.commons.Common;
 import com.blackrook.commons.hash.Hash;
 import com.blackrook.commons.hash.HashMap;
+import com.blackrook.commons.hash.HashedQueueMap;
+import com.blackrook.commons.linkedlist.Queue;
 import com.blackrook.commons.linkedlist.Stack;
 import com.blackrook.commons.list.List;
 import com.blackrook.lang.CommonLexer;
@@ -325,7 +328,7 @@ public final class ArcheTextReader
 		ATParser parser = new ATParser(lexer);
 		parser.readObjects(root);
 	}
-		
+
 	/** The Lexer Kernel for the ArcheText Lexers. */
 	private static class Kernel extends CommonLexerKernel
 	{
@@ -342,22 +345,23 @@ public final class ArcheTextReader
 		static final int TYPE_COLON = 9;
 		static final int TYPE_COMMA = 10;
 		static final int TYPE_LEFTARROW = 11;
+		static final int TYPE_DOT = 12;
 
-		static final int TYPE_AT = 12;
-		static final int TYPE_PLUS = 13;
-		static final int TYPE_MINUS = 14;
-		static final int TYPE_TIMES = 15;
-		static final int TYPE_DIV = 16;
-		static final int TYPE_MODULO = 17;
-		static final int TYPE_POWER = 18;
-		static final int TYPE_BITNOT = 19;
-		static final int TYPE_NOT = 20;
-		static final int TYPE_AND = 21;
-		static final int TYPE_OR = 22;
-		static final int TYPE_XOR = 23;
-		static final int TYPE_LSHIFT = 24;
-		static final int TYPE_RSHIFT = 25;
-		static final int TYPE_RSHIFTPAD = 26;
+		static final int TYPE_AT = 13;
+		static final int TYPE_PLUS = 14;
+		static final int TYPE_MINUS = 15;
+		static final int TYPE_TIMES = 16;
+		static final int TYPE_DIV = 17;
+		static final int TYPE_MODULO = 18;
+		static final int TYPE_POWER = 19;
+		static final int TYPE_BITNOT = 20;
+		static final int TYPE_NOT = 21;
+		static final int TYPE_AND = 22;
+		static final int TYPE_OR = 23;
+		static final int TYPE_XOR = 24;
+		static final int TYPE_LSHIFT = 25;
+		static final int TYPE_RSHIFT = 26;
+		static final int TYPE_RSHIFTPAD = 27;
 
 		static final int TYPE_TRUE = 40;
 		static final int TYPE_FALSE = 41;
@@ -385,6 +389,7 @@ public final class ArcheTextReader
 			addDelimiter(":", TYPE_COLON);
 			addDelimiter(",", TYPE_COMMA);
 			addDelimiter("<-", TYPE_LEFTARROW);
+			addDelimiter(".", TYPE_DOT);
 
 			addDelimiter("@", TYPE_AT);
 			addDelimiter("+", TYPE_PLUS);
@@ -510,6 +515,9 @@ public final class ArcheTextReader
 	 */
 	private static class ATParser extends Parser
 	{
+		/** Set of prototypes. */
+		private HashedQueueMap<String, String> prototypes;
+		
 		/** Current root. */
 		private ArcheTextRoot currentRoot;
 		/** Current object type. */
@@ -518,6 +526,8 @@ public final class ArcheTextReader
 		private String currentObjectName;
 		/** Current object. */
 		private ArcheTextObject currentObject;
+		/** Current field list. */
+		private List<String> currentFieldList;
 		/** Current object reference. */
 		private List<ArcheTextObject> currentObjectParents;
 		/** Current object reference flatten flag. */
@@ -528,6 +538,7 @@ public final class ArcheTextReader
 		private ATParser(ATLexer lexer)
 		{
 			super(lexer);
+			prototypes = new HashedQueueMap<>();
 		}
 		
 		/**
@@ -543,10 +554,7 @@ public final class ArcheTextReader
 			// keep parsing entries.
 			boolean noError = true;
 			try {
-				while (currentToken() != null && (noError = parseATEntries()))
-				{
-					targetRoot.add(currentObject);
-				}
+				while (currentToken() != null && (noError = parseATEntries(currentRoot))) ;
 			} catch (ArcheTextOperationException e) {
 				addErrorMessage("Error in expression: "+e.getLocalizedMessage());
 				noError = false;
@@ -572,32 +580,48 @@ public final class ArcheTextReader
 		
 		/*
 		 *	<ATEntries> :=
+		 *		"." <ATPrototype>
 		 *		<ATDeclaration> <ATParentList> <ATBody> <ATEntries>
 		 *
 		 * Sets: currentObject, currentObjectParents, currentObjectParentsFlatten
 		 */
-		private boolean parseATEntries()
+		private boolean parseATEntries(ArcheTextRoot targetRoot)
 		{
 			currentObject = null;
 			
-			if (!parseATDeclaration())
+			if (matchType(Kernel.TYPE_DOT))
+			{
+				if (!parseATPrototype())
+					return false;
+				
+				for (String field : currentFieldList)
+					prototypes.enqueue(currentObjectType, field);
+				
+				return true;
+			}
+			else if (!parseATDeclaration())
 				return false;
-			
-			currentObject = new ArcheTextObject(currentObjectType, currentObjectName);
-			
-			if (!parseATParentList())
-				return false;
-			
-			for (ArcheTextObject parent : currentObjectParents)
-				currentObject.addParent(parent);
-			
-			if (!parseATBody(currentObject))
-				return false;
-			
-			if (currentObjectParentsFlatten)
-				currentObject.flatten();
+			else
+			{
+				currentObject = new ArcheTextObject(currentObjectType, currentObjectName);
+				
+				if (!parseATParentList())
+					return false;
+				
+				for (ArcheTextObject parent : currentObjectParents)
+					currentObject.addParent(parent);
+				
+				if (!parseATBody(currentObject))
+					return false;
+				
+				if (currentObjectParentsFlatten)
+					currentObject.flatten();
 
-			return true;
+				targetRoot.add(currentObject);
+				
+				return true;
+			}
+			
 		}
 		
 		/*
@@ -621,10 +645,102 @@ public final class ArcheTextReader
 				return true;
 			}
 			
-			addErrorMessage("Expected ArcheText object type indentifier.");
+			addErrorMessage("Expected ArcheText object type or prototype clause start.");
 			return false;
 		}
 		
+		/*
+		 *	<ATPrototype> :=
+		 *		<IDENTIFIER> "(" <ATFieldNameList> ")"
+		 *
+		 * Sets: currentObjectType, currentFieldList
+		 */
+		private boolean parseATPrototype()
+		{
+			if (currentType(Lexer.TYPE_IDENTIFIER))
+			{
+				currentObjectType = currentToken().getLexeme();
+				
+				if (prototypes.containsKey(currentObjectType))
+				{
+					addErrorMessage("Prototype \""+currentObjectType+"\" already declared.");
+					return false;
+				}
+				
+				nextToken();
+
+				if (!matchTypeStrict(Kernel.TYPE_LPAREN))
+					return false;
+				
+				if (!parseATFieldNameList())
+					return false;
+				
+				if (!matchTypeStrict(Kernel.TYPE_RPAREN))
+					return false;
+
+				return true;
+			}
+			
+			addErrorMessage("Expected Prototype type identifier after Prototype clause start.");
+			return false;
+		}
+		
+		/*
+		 *	<ATFieldNameList> :=
+		 *		<IDENTIFIER> <ATFieldNameListPrime>
+		 *
+		 * Sets: currentFieldList
+		 */
+		private boolean parseATFieldNameList()
+		{
+			if (currentFieldList == null)
+				currentFieldList = new List<String>(4);
+			else
+				currentFieldList.clear();
+
+			if (currentType(Lexer.TYPE_IDENTIFIER))
+			{
+				currentFieldList.add(currentToken().getLexeme());
+				nextToken();
+				
+				if (!parseATFieldNameListPrime())
+					return false;
+				
+				return true;
+			}
+			
+			addErrorMessage("Expected field name identifier.");
+			return false;
+		}
+		
+		/*
+		 *	<ATFieldNameListPrime> :=
+		 *		"," <INTEGER> <ATFieldNameListPrime>
+		 *		[e]
+		 */
+		private boolean parseATFieldNameListPrime()
+		{
+			if (currentType(Kernel.TYPE_COMMA))
+			{
+				nextToken();
+
+				if (currentType(Lexer.TYPE_IDENTIFIER))
+				{
+					currentFieldList.add(currentToken().getLexeme());
+					nextToken();
+					
+					if (!parseATFieldNameListPrime())
+						return false;
+					
+					return true;
+				}
+				
+				addErrorMessage("Expected field name identifier.");
+				return false;
+			}
+			
+			return true;
+		}
 		
 		/*
 		 *	<ATStructName> :=
@@ -729,6 +845,7 @@ public final class ArcheTextReader
 		/*
 		 *	<ATBody> :=
 		 *		"{" <ATFieldList> "}"
+		 *		"(" <ATValueList> ")"
 		 *		";"
 		 */
 		private boolean parseATBody(ArcheTextObject object)
@@ -741,6 +858,27 @@ public final class ArcheTextReader
 				if (!matchType(Kernel.TYPE_RBRACE))
 				{
 					addErrorMessage("Expected ',' or end of object declaration ('}').");
+					return false;
+				}
+				return true;
+			}
+			else if (currentType(Kernel.TYPE_LPAREN))
+			{
+				// check for prototype.
+				if (!prototypes.containsKey(object.getType()))
+				{
+					addErrorMessage("Prototyped structure has no matching prototype delcaration for type \""+object.getType()+"\".");
+					return false;
+				}
+
+				nextToken();
+
+				if (!parseATPrototypeFieldList(object, prototypes.get(object.getType())))
+					return false;
+				
+				if (!matchType(Kernel.TYPE_RPAREN))
+				{
+					addErrorMessage("Expected ',' or end of prototyped object declaration (')').");
 					return false;
 				}
 				return true;
@@ -794,6 +932,32 @@ public final class ArcheTextReader
 			return true;
 		}
 
+		/*
+		 *	<ATPrototypeFieldList> := <Value> ("," <Value>....)
+		 */
+		private boolean parseATPrototypeFieldList(ArcheTextObject object, Queue<String> fieldQueue)
+		{
+			Iterator<String> fieldIterator = fieldQueue.iterator();
+			while (fieldIterator.hasNext())
+			{
+				String field = fieldIterator.next();
+				
+				if (!parseValue())
+					return false;
+				
+				object.setField(field, Combinator.SET, currentValue);
+				
+				// try to match a comma if more fields exist.
+				if (fieldIterator.hasNext())
+				{
+					if (!matchTypeStrict(Kernel.TYPE_COMMA))
+						return false;
+				}
+				
+			}
+			
+			return true;
+		}
 		
 		/*
 		 *	<Value> :=

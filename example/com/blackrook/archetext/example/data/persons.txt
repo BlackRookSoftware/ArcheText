@@ -1,7 +1,11 @@
+.person(sex, age, location)
+
 persontype "Male"
 {
 	sex = "MALE";
 }
+
+person "Jim" ("MALE", 30, "Trenton, NJ")
 
 person "Matthew"
 {
