@@ -1,15 +1,28 @@
 ArcheType Language Spec
 -----------------------
 
-<ATRoot> :=
-	<ATDeclaration> <ATParentList> <ATBody>
+<ATEntries> :=
+	"." <ATPrototype>
+	<ATDeclaration> <ATParentList> <ATBody> <ATEntries>
 
 <ATDeclaration> :=
 	<IDENTIFIER> <ATStructName>
 
+<ATPrototype> :=
+	<IDENTIFIER> "(" <ATFieldNameList> ")"
+
+<ATFieldNameList> :=
+	<IDENTIFIER> <ATFieldNameListPrime>
+
+<ATFieldNameListPrime> :=
+	"," <INTEGER> <ATFieldNameListPrime>
+	[e]
+
 <ATStructName> :=
 	<IDENTIFIER>
 	<STRING>
+	<INTEGER>
+	<FLOAT>
 	[e]
 	
 <ATParentList> :=
@@ -23,19 +36,34 @@ ArcheType Language Spec
 
 <ATBody> :=
 	"{" <ATFieldList> "}"
+	"(" <ATValueList> ")"
 	";"
 
 <ATFieldList> :=
 	<IDENTIFIER> <AssignmentOperator> <Expression> ";" <ATFieldList>
 	[e]
 
+<ATPrototypeFieldList> := <Value> ("," <Value>....) (depends on prototype field amount)
+
 <AssignmentOperator> :=
 	"="
 	"+="
+	"-="
+	"*="
+	"/="
+	"%="
+	"'="
+	"&="
+	"|="
+	"^="
+	"<<="
+	">>="
+	">>>="
 
 <Expression> := [SHIFT-REDUCER]
 
 <Value> :=
+	"@" <ATDeclaration>
 	"{" <ATFieldList> "}"
 	"[" <ArrayBody> "]"
 	"<" <SetBody> ">"

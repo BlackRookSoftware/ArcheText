@@ -845,7 +845,7 @@ public final class ArcheTextReader
 		/*
 		 *	<ATBody> :=
 		 *		"{" <ATFieldList> "}"
-		 *		"(" <ATValueList> ")"
+		 *		"(" <ATPrototypeFieldList> ")"
 		 *		";"
 		 */
 		private boolean parseATBody(ArcheTextObject object)
