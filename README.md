@@ -6,7 +6,7 @@ Copyright (c) 2015 Black Rook Software. All rights reserved.
 
 ### Required Libraries
 
-Black Rook Commons 2.20.0+  
+Black Rook Commons 2.21.0+  
 [https://github.com/BlackRookSoftware/Common](https://github.com/BlackRookSoftware/Common)
 
 ### Introduction
@@ -259,7 +259,7 @@ If *triple* structures *xunit* and *yunit* were defined as:
 
 Field value priority goes from first defined to last-defined in the inheritance 
 clauses (in this example, *all ones* (defined fields) is searched, then *yunit*, 
-then *xunit*.
+then *xunit*).
 
 If you do NOT wish to preserve hierarchy, and would like a structure to be 
 **flattened** into its current values, then the first colon should be changed
@@ -275,6 +275,32 @@ hierarchy is lost after parsing.
 
 
 Inheritance does not even need to be among like types. 
+
+
+#### Prototyping
+
+You can prototype the fields for a type so that you can write an abbreviated 
+structure later. Prototype statements look like the following:
+
+	.triple(x, y, z)
+	
+The statement must start with a period, then the type, then a parenthesis-wrapped 
+list of field identifiers. An object can then be declared like this:
+
+	triple "example" (1, 2, 3)
+
+Which is equivalent to:
+
+	triple "example"
+	{
+		x = 1;
+		y = 2;
+		z = 3;
+	}
+
+You can even use expressions in them!
+
+	triple "example" (9 - 8, 4 / 2, 3 * 3 / 3)
 
 
 ### Reflection and POJO Conversion	
