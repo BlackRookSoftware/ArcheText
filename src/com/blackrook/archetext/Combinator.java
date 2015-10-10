@@ -53,6 +53,8 @@ public enum Combinator
 			
 			switch (operand.type)
 			{
+				case NULL:
+					return new ArcheTextValue(Type.NULL, null);
 				case BOOLEAN:
 					return new ArcheTextValue(Type.BOOLEAN, target.getBoolean() || operand.getBoolean());
 				case INTEGER:
@@ -114,6 +116,8 @@ public enum Combinator
 			
 			switch (operand.type)
 			{
+				case NULL:
+					return new ArcheTextValue(Type.NULL, null);
 				case BOOLEAN:
 					return new ArcheTextValue(Type.BOOLEAN, target.getBoolean() || operand.getBoolean());
 				case INTEGER:
@@ -165,12 +169,16 @@ public enum Combinator
 			
 			switch (operand.type)
 			{
+				case NULL:
+					return new ArcheTextValue(Type.NULL, null);
 				case BOOLEAN:
 					return new ArcheTextValue(Type.BOOLEAN, target.getBoolean() && operand.getBoolean());
 				case INTEGER:
 					return new ArcheTextValue(Type.INTEGER, target.getLong() * operand.getLong());
 				case FLOAT:
 					return new ArcheTextValue(Type.FLOAT, target.getDouble() * operand.getDouble());
+				default:
+					// fall out.
 			}
 			
 			return null;
@@ -210,6 +218,10 @@ public enum Combinator
 						throw new ArcheTextOperationException("Divide by zero.");
 					else
 						return new ArcheTextValue(Type.FLOAT, target.getDouble() / operand.getDouble());
+				case NULL:
+					return new ArcheTextValue(Type.NULL, null);
+				default:
+					// fall out.
 			}
 			
 			return null;
@@ -249,6 +261,10 @@ public enum Combinator
 						throw new ArcheTextOperationException("Divide by zero.");
 					else
 						return new ArcheTextValue(Type.FLOAT, target.getDouble() % operand.getDouble());
+				case NULL:
+					return new ArcheTextValue(Type.NULL, null);
+				default:
+					// fall out.
 			}
 			
 			return null;
@@ -282,6 +298,10 @@ public enum Combinator
 					return new ArcheTextValue(Type.INTEGER, (long)Math.pow(target.getLong(), operand.getLong()));
 				case FLOAT:
 					return new ArcheTextValue(Type.FLOAT, Math.pow(target.getDouble(), operand.getDouble()));
+				case NULL:
+					return new ArcheTextValue(Type.NULL, null);
+				default:
+					// fall out.
 			}
 			
 			return null;
@@ -321,6 +341,10 @@ public enum Combinator
 				case FLOAT:
 					targbits = Double.doubleToRawLongBits(target.getDouble());
 					break;
+				case NULL:
+					return new ArcheTextValue(Type.NULL, null);
+				default:
+					// fall out.
 			}
 			
 			switch (operand.type)
@@ -334,6 +358,10 @@ public enum Combinator
 				case FLOAT:
 					operandbits = Double.doubleToRawLongBits(operand.getDouble());
 					break;
+				case NULL:
+					return new ArcheTextValue(Type.NULL, null);
+				default:
+					// fall out.
 			}
 			
 			long result = targbits & operandbits;
@@ -385,6 +413,10 @@ public enum Combinator
 				case FLOAT:
 					targbits = Double.doubleToRawLongBits(target.getDouble());
 					break;
+				case NULL:
+					return new ArcheTextValue(Type.NULL, null);
+				default:
+					// fall out.
 			}
 			
 			switch (operand.type)
@@ -398,6 +430,10 @@ public enum Combinator
 				case FLOAT:
 					operandbits = Double.doubleToRawLongBits(operand.getDouble());
 					break;
+				case NULL:
+					return new ArcheTextValue(Type.NULL, null);
+				default:
+					// fall out.
 			}
 			
 			long result = targbits | operandbits;
@@ -449,6 +485,10 @@ public enum Combinator
 				case FLOAT:
 					targbits = Double.doubleToRawLongBits(target.getDouble());
 					break;
+				case NULL:
+					return new ArcheTextValue(Type.NULL, null);
+				default:
+					// fall out.
 			}
 			
 			switch (operand.type)
@@ -462,6 +502,10 @@ public enum Combinator
 				case FLOAT:
 					operandbits = Double.doubleToRawLongBits(operand.getDouble());
 					break;
+				case NULL:
+					return new ArcheTextValue(Type.NULL, null);
+				default:
+					// fall out.
 			}
 			
 			long result = targbits ^ operandbits;
@@ -518,6 +562,8 @@ public enum Combinator
 					throw new ArcheTextOperationException("Can't use a left shift operator with sets.");
 				case OBJECT:
 					throw new ArcheTextOperationException("Can't use a left shift operator with objects.");
+				case NULL:
+					return new ArcheTextValue(Type.NULL, null);
 			}
 			
 			switch (operand.type)
@@ -537,6 +583,8 @@ public enum Combinator
 					throw new ArcheTextOperationException("Can't use a left shift operator with a list as an operand.");
 				case OBJECT:
 					throw new ArcheTextOperationException("Can't use a left shift operator with a object as an operand.");
+				case NULL:
+					throw new ArcheTextOperationException("Can't use a left shift operator with a null object as an operand.");
 			}
 			
 			if (list != null)
@@ -612,11 +660,13 @@ public enum Combinator
 					targbits = Double.doubleToRawLongBits(target.getDouble());
 					break;
 				case STRING:
-					throw new ArcheTextOperationException("Can't use a left shift operator with strings.");
+					throw new ArcheTextOperationException("Can't use a right shift operator with strings.");
 				case SET:
-					throw new ArcheTextOperationException("Can't use a left shift operator with sets.");
+					throw new ArcheTextOperationException("Can't use a right shift operator with sets.");
 				case OBJECT:
-					throw new ArcheTextOperationException("Can't use a left shift operator with objects.");
+					throw new ArcheTextOperationException("Can't use a right shift operator with objects.");
+				case NULL:
+					return new ArcheTextValue(Type.NULL, null);
 			}
 			
 			switch (operand.type)
@@ -625,17 +675,19 @@ public enum Combinator
 					operandValue = (int)operand.getLong();
 					break;
 				case BOOLEAN:
-					throw new ArcheTextOperationException("Can't use a left shift operator with a boolean as an operand.");
+					throw new ArcheTextOperationException("Can't use a right shift operator with a boolean as an operand.");
 				case FLOAT:
-					throw new ArcheTextOperationException("Can't use a left shift operator with a float as an operand.");
+					throw new ArcheTextOperationException("Can't use a right shift operator with a float as an operand.");
 				case STRING:
-					throw new ArcheTextOperationException("Can't use a left shift operator with a string as an operand.");
+					throw new ArcheTextOperationException("Can't use a right shift operator with a string as an operand.");
 				case SET:
-					throw new ArcheTextOperationException("Can't use a left shift operator with a set as an operand.");
+					throw new ArcheTextOperationException("Can't use a right shift operator with a set as an operand.");
 				case LIST:
-					throw new ArcheTextOperationException("Can't use a left shift operator with a list as an operand.");
+					throw new ArcheTextOperationException("Can't use a right shift operator with a list as an operand.");
 				case OBJECT:
-					throw new ArcheTextOperationException("Can't use a left shift operator with a object as an operand.");
+					throw new ArcheTextOperationException("Can't use a right shift operator with a object as an operand.");
+				case NULL:
+					throw new ArcheTextOperationException("Can't use a right shift operator with a null object as an operand.");
 			}
 			
 			if (list != null)
@@ -711,11 +763,13 @@ public enum Combinator
 					targbits = Double.doubleToRawLongBits(target.getDouble());
 					break;
 				case STRING:
-					throw new ArcheTextOperationException("Can't use a left shift operator with strings.");
+					throw new ArcheTextOperationException("Can't use a right padded shift operator with strings.");
 				case SET:
-					throw new ArcheTextOperationException("Can't use a left shift operator with sets.");
+					throw new ArcheTextOperationException("Can't use a right padded shift operator with sets.");
 				case OBJECT:
-					throw new ArcheTextOperationException("Can't use a left shift operator with objects.");
+					throw new ArcheTextOperationException("Can't use a right padded shift operator with objects.");
+				case NULL:
+					return new ArcheTextValue(Type.NULL, null);
 			}
 			
 			switch (operand.type)
@@ -724,17 +778,19 @@ public enum Combinator
 					operandValue = (int)operand.getLong();
 					break;
 				case BOOLEAN:
-					throw new ArcheTextOperationException("Can't use a left shift operator with a boolean as an operand.");
+					throw new ArcheTextOperationException("Can't use a right padded shift operator with a boolean as an operand.");
 				case FLOAT:
-					throw new ArcheTextOperationException("Can't use a left shift operator with a float as an operand.");
+					throw new ArcheTextOperationException("Can't use a right padded shift operator with a float as an operand.");
 				case STRING:
-					throw new ArcheTextOperationException("Can't use a left shift operator with a string as an operand.");
+					throw new ArcheTextOperationException("Can't use a right padded shift operator with a string as an operand.");
 				case SET:
-					throw new ArcheTextOperationException("Can't use a left shift operator with a set as an operand.");
+					throw new ArcheTextOperationException("Can't use a right padded shift operator with a set as an operand.");
 				case LIST:
-					throw new ArcheTextOperationException("Can't use a left shift operator with a list as an operand.");
+					throw new ArcheTextOperationException("Can't use a right padded shift operator with a list as an operand.");
 				case OBJECT:
-					throw new ArcheTextOperationException("Can't use a left shift operator with a object as an operand.");
+					throw new ArcheTextOperationException("Can't use a right padded shift operator with a object as an operand.");
+				case NULL:
+					throw new ArcheTextOperationException("Can't use a right padded shift operator with a null object as an operand.");
 			}
 			
 			if (list != null)
@@ -808,6 +864,8 @@ public enum Combinator
 				throw new ArcheTextOperationException("Can't use a " + operatorName + " operator with lists.");
 			case OBJECT:
 				throw new ArcheTextOperationException("Can't use a " + operatorName + " operator with objects.");
+			default:
+				// fall out.
 		}
 		switch (operand.type)
 		{
@@ -819,6 +877,8 @@ public enum Combinator
 				throw new ArcheTextOperationException("Can't use a " + operatorName + " operator with lists.");
 			case OBJECT:
 				throw new ArcheTextOperationException("Can't use a " + operatorName + " operator with objects.");
+			default:
+				// fall out.
 		}
 	}
 	
