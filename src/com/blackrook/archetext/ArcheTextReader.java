@@ -947,11 +947,11 @@ public final class ArcheTextReader
 				
 				object.setField(field, Combinator.SET, currentValue);
 				
-				// try to match a comma if more fields exist.
+				// If comma not matched, abandon read.
 				if (fieldIterator.hasNext())
 				{
-					if (!matchTypeStrict(Kernel.TYPE_COMMA))
-						return false;
+					if (!matchType(Kernel.TYPE_COMMA))
+						return true;
 				}
 				
 			}

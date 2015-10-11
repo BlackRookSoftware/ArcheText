@@ -302,6 +302,18 @@ You can even use expressions in them!
 
 	triple "example" (9 - 8, 4 / 2, 3 * 3 / 3)
 
+If you don't specify all of the fields, not all get defined. The following definition:
+
+	triple "example" (1, 2)
+
+Is equivalent to:
+
+	triple "example"
+	{
+		x = 1;
+		y = 2;
+	}
+
 
 ### Reflection and POJO Conversion	
 
