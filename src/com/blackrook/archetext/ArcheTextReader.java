@@ -669,14 +669,20 @@ public final class ArcheTextReader
 				
 				nextToken();
 
-				if (!matchTypeStrict(Kernel.TYPE_LPAREN))
+				if (!matchType(Kernel.TYPE_LPAREN))
+				{
+					addErrorMessage("Expected \"(\" for start of prototype fields.");
 					return false;
+				}
 				
 				if (!parseATFieldNameList())
 					return false;
 				
-				if (!matchTypeStrict(Kernel.TYPE_RPAREN))
+				if (!matchType(Kernel.TYPE_RPAREN))
+				{
+					addErrorMessage("Expected \")\" for end of prototype fields.");
 					return false;
+				}
 
 				return true;
 			}
@@ -923,8 +929,11 @@ public final class ArcheTextReader
 				
 				object.setField(member, combinator, currentValue);
 				
-				if (!matchTypeStrict(Kernel.TYPE_SEMICOLON))
+				if (!matchType(Kernel.TYPE_SEMICOLON))
+				{
+					addErrorMessage("Expected \";\" to end statement, or an assignment operator to continue statement.");
 					return false;
+				}
 					
 				return parseATFieldList(object);
 			}
