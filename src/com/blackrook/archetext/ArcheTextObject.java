@@ -302,9 +302,13 @@ public class ArcheTextObject
 			return field.value.copy();
 
 		ArcheTextValue out = field != null ? field.value : null;
-		
 		if (atobject.parents != null) for (ArcheTextObject parent : atobject.parents)
-			out = out != null ? out.combineWith(field.combinator, recurseValue(name, parent)) : recurseValue(name, parent);
+		{
+			if (out != null)
+				out = out.combineWith(field.combinator, recurseValue(name, parent));
+			else
+				return recurseValue(name, parent);
+		}
 		
 		return out;
 	}
