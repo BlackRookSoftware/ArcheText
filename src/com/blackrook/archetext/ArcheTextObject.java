@@ -297,6 +297,7 @@ public class ArcheTextObject
 	// recursively finds the correct value.
 	private static ArcheTextValue recurseValue(String name, ArcheTextObject atobject)
 	{
+		// FIXME: Does not work. FIX!
 		AField field = atobject.getLocalField(name);
 		if (field != null && field.combinator == Combinator.SET)
 			return field.value.copy();
