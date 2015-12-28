@@ -24,6 +24,7 @@ public enum Combinator
 		{
 			return operand != null ? operand.copy() : null;
 		}
+
 	},
 	
 	ADD("+=")
@@ -32,10 +33,8 @@ public enum Combinator
 		@SuppressWarnings("unchecked")
 		public ArcheTextValue combine(ArcheTextValue operand, ArcheTextValue target)
 		{
-			if (target == null)
-				return operand.copy();
 			if (target.isNull())
-				return null;
+				return new ArcheTextValue(Type.NULL, null);
 
 			switch (target.type)
 			{
@@ -95,10 +94,8 @@ public enum Combinator
 		@SuppressWarnings("unchecked")
 		public ArcheTextValue combine(ArcheTextValue operand, ArcheTextValue target)
 		{
-			if (target == null)
-				return operand.copy();
 			if (target.isNull())
-				return null;
+				return new ArcheTextValue(Type.NULL, null);
 
 			switch (target.type)
 			{
@@ -153,10 +150,8 @@ public enum Combinator
 		@Override
 		public ArcheTextValue combine(ArcheTextValue operand, ArcheTextValue target)
 		{
-			if (target == null)
-				return operand.copy();
 			if (target.isNull())
-				return null;
+				return new ArcheTextValue(Type.NULL, null);
 
 			operatorObjectCheck("multiplication", operand, target);
 
@@ -190,10 +185,8 @@ public enum Combinator
 		@Override
 		public ArcheTextValue combine(ArcheTextValue operand, ArcheTextValue target)
 		{
-			if (target == null)
-				return operand.copy();
 			if (target.isNull())
-				return null;
+				return new ArcheTextValue(Type.NULL, null);
 
 			operatorObjectCheck("division", operand, target);
 			
@@ -233,10 +226,8 @@ public enum Combinator
 		@Override
 		public ArcheTextValue combine(ArcheTextValue operand, ArcheTextValue target)
 		{
-			if (target == null)
-				return operand.copy();
 			if (target.isNull())
-				return null;
+				return new ArcheTextValue(Type.NULL, null);
 
 			operatorObjectCheck("modulo", operand, target);
 
@@ -276,10 +267,8 @@ public enum Combinator
 		@Override
 		public ArcheTextValue combine(ArcheTextValue operand, ArcheTextValue target)
 		{
-			if (target == null)
-				return operand.copy();
 			if (target.isNull())
-				return null;
+				return new ArcheTextValue(Type.NULL, null);
 
 			operatorObjectCheck("power", operand, target);
 
@@ -314,10 +303,8 @@ public enum Combinator
 		@SuppressWarnings("unchecked")
 		public ArcheTextValue combine(ArcheTextValue operand, ArcheTextValue target)
 		{
-			if (target == null)
-				return operand.copy();
 			if (target.isNull())
-				return null;
+				return new ArcheTextValue(Type.NULL, null);
 
 			// set and set
 			if (target.type == Type.SET && operand.type == Type.SET)
@@ -389,7 +376,7 @@ public enum Combinator
 			if (target == null)
 				return operand.copy();
 			if (target.isNull())
-				return null;
+				return new ArcheTextValue(Type.NULL, null);
 
 			// set and set
 			if (target.type == Type.SET && operand.type == Type.SET)
@@ -461,7 +448,7 @@ public enum Combinator
 			if (target == null)
 				return operand.copy();
 			if (target.isNull())
-				return null;
+				return new ArcheTextValue(Type.NULL, null);
 
 			// set and set
 			if (target.type == Type.SET && operand.type == Type.SET)
@@ -533,7 +520,7 @@ public enum Combinator
 			if (target == null)
 				return operand.copy();
 			if (target.isNull())
-				return null;
+				return new ArcheTextValue(Type.NULL, null);
 
 			List<ArcheTextValue> list = null;
 			long targbits = 0L;
@@ -636,7 +623,7 @@ public enum Combinator
 			if (target == null)
 				return operand.copy();
 			if (target.isNull())
-				return null;
+				return new ArcheTextValue(Type.NULL, null);
 
 			List<ArcheTextValue> list = null;
 			long targbits = 0L;
@@ -739,7 +726,7 @@ public enum Combinator
 			if (target == null)
 				return operand.copy();
 			if (target.isNull())
-				return null;
+				return new ArcheTextValue(Type.NULL, null);
 
 			List<ArcheTextValue> list = null;
 			long targbits = 0L;

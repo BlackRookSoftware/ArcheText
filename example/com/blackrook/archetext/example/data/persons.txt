@@ -1,28 +1,31 @@
-.person(sex, age, location)
 
-persontype "Male"
+person "male"
 {
 	sex = "MALE";
 }
 
-person "Jim" ("MALE", 30, "Trenton, NJ")
-
-person "Matthew"
+person "female"
 {
-	age = 6;
-	sex = "MALE";
-	location = "Scranton, PA";
-}
-
-person "Bob" : persontype "Male"
-{
-	age = 13;
-	location = "Scranton, PA";
-}
-
-person "Matt's Younger Sister" : person "Matthew"
-{
-	age -= 3;
 	sex = "FEMALE";
+}
+
+person "age20"
+{
+	age = 20;
+}
+
+person "age30"
+{
+	age = 30;
+}
+
+person "Scranton"
+{
+	location = "Scranton, PA";
+}
+
+person "Matt" : person "Scranton" /*: person "age20" : person "age30"*/ : person "male" : person "female"
+{
+	age /= 5;
 }
 

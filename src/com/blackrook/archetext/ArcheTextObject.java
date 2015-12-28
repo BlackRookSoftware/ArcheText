@@ -24,6 +24,7 @@ import com.blackrook.commons.TypeProfile;
 import com.blackrook.commons.TypeProfile.MethodSignature;
 import com.blackrook.commons.hash.Hash;
 import com.blackrook.commons.hash.HashMap;
+import com.blackrook.commons.linkedlist.Queue;
 import com.blackrook.commons.linkedlist.Stack;
 import com.blackrook.lang.json.JSONConversionException;
 
@@ -40,7 +41,7 @@ public class ArcheTextObject
 	private String name;
 	
 	/** Object hierarchy parents. */
-	private Stack<ArcheTextObject> parents;
+	private Queue<ArcheTextObject> parents;
 	/** Object local fields. */
 	private HashMap<String, AField> fields;
 
@@ -138,8 +139,8 @@ public class ArcheTextObject
 	public void pushParent(ArcheTextObject parent)
 	{
 		if (parents == null)
-			parents = new Stack<ArcheTextObject>();
-		parents.push(parent);
+			parents = new Queue<ArcheTextObject>();
+		parents.add(parent);
 	}
 
 	/**
@@ -150,7 +151,7 @@ public class ArcheTextObject
 	public void addParent(ArcheTextObject parent)
 	{
 		if (parents == null)
-			parents = new Stack<ArcheTextObject>();
+			parents = new Queue<ArcheTextObject>();
 		parents.add(parent);
 	}
 
@@ -268,7 +269,7 @@ public class ArcheTextObject
 	 */
 	public <T> T get(String name, Class<T> outputType)
 	{
-		ArcheTextValue rv = recurseValue(name, this);
+		ArcheTextValue rv = getField(name);
 		if (rv == null)
 			return createForType(name, null, outputType);
 		else
@@ -286,32 +287,37 @@ public class ArcheTextObject
 	}
 
 	/**
-	 * Gets the final value of a local field, after recursing through its lineage.
+	 * Gets the final value of a field, after going through its lineage.
 	 * @param name the name of the field.
 	 */
 	ArcheTextValue getField(String name)
 	{
-		return recurseValue(name, this);
-	}
-	
-	// recursively finds the correct value.
-	private static ArcheTextValue recurseValue(String name, ArcheTextObject atobject)
-	{
-		// FIXME: Does not work. FIX!
-		AField field = atobject.getLocalField(name);
-		if (field != null && field.combinator == Combinator.SET)
-			return field.value.copy();
-
-		ArcheTextValue out = field != null ? field.value : null;
-		if (atobject.parents != null) for (ArcheTextObject parent : atobject.parents)
+		Stack<AField> fields = new Stack<AField>();
+		accumFields(name, this, fields);
+		
+		ArcheTextValue out = null;
+		while (!fields.isEmpty())
 		{
-			if (out != null)
-				out = out.combineWith(field.combinator, recurseValue(name, parent));
+			AField field = fields.pop();
+			if (out == null)
+				out = field.value.copy();
 			else
-				return recurseValue(name, parent);
+				out = field.value.combineWith(field.combinator, out); 
 		}
 		
 		return out;
+	}
+	
+	// recursively finds the correct value.
+	private static void accumFields(String name, ArcheTextObject atobject, Stack<AField> values)
+	{
+		AField field = atobject.getLocalField(name);
+		
+		if (field != null)
+			values.push(field);
+		
+		if (atobject.parents != null) for (ArcheTextObject parent : atobject.parents)
+			accumFields(name, parent, values);
 	}
 	
 	/**
