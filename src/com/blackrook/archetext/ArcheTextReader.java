@@ -376,6 +376,7 @@ public final class ArcheTextReader
 		private Kernel()
 		{
 			addStringDelimiter('"', '"');
+			setDecimalSeparator('.');
 			
 			addDelimiter("{", TYPE_LBRACE);
 			addDelimiter("}", TYPE_RBRACE);
