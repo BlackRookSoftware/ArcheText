@@ -30,7 +30,6 @@ import com.blackrook.commons.linkedlist.Stack;
 import com.blackrook.commons.list.List;
 import com.blackrook.lang.CommonLexer;
 import com.blackrook.lang.CommonLexerKernel;
-import com.blackrook.lang.Lexer;
 import com.blackrook.lang.Parser;
 
 /**
@@ -635,7 +634,7 @@ public final class ArcheTextReader
 		{
 			currentObjectType = null;
 			
-			if (currentType(Lexer.TYPE_IDENTIFIER))
+			if (currentType(Kernel.TYPE_IDENTIFIER))
 			{
 				currentObjectType = currentToken().getLexeme();
 				nextToken();
@@ -658,7 +657,7 @@ public final class ArcheTextReader
 		 */
 		private boolean parseATPrototype()
 		{
-			if (currentType(Lexer.TYPE_IDENTIFIER))
+			if (currentType(Kernel.TYPE_IDENTIFIER))
 			{
 				currentObjectType = currentToken().getLexeme();
 				
@@ -705,7 +704,7 @@ public final class ArcheTextReader
 			else
 				currentFieldList.clear();
 
-			if (currentType(Lexer.TYPE_IDENTIFIER))
+			if (currentType(Kernel.TYPE_IDENTIFIER))
 			{
 				currentFieldList.add(currentToken().getLexeme());
 				nextToken();
@@ -731,7 +730,7 @@ public final class ArcheTextReader
 			{
 				nextToken();
 
-				if (currentType(Lexer.TYPE_IDENTIFIER))
+				if (currentType(Kernel.TYPE_IDENTIFIER))
 				{
 					currentFieldList.add(currentToken().getLexeme());
 					nextToken();
@@ -763,7 +762,7 @@ public final class ArcheTextReader
 		{
 			currentObjectName = null;
 			
-			if (currentType(Lexer.TYPE_IDENTIFIER, Lexer.TYPE_STRING, Lexer.TYPE_NUMBER))
+			if (currentType(Kernel.TYPE_IDENTIFIER, Kernel.TYPE_STRING, Kernel.TYPE_NUMBER))
 			{
 				currentObjectName = currentToken().getLexeme();
 				nextToken();
@@ -910,7 +909,7 @@ public final class ArcheTextReader
 		 */
 		private boolean parseATFieldList(ArcheTextObject object)
 		{
-			if (currentType(Lexer.TYPE_IDENTIFIER))
+			if (currentType(Kernel.TYPE_IDENTIFIER))
 			{
 				String member = currentToken().getLexeme();
 				nextToken();
@@ -1102,7 +1101,7 @@ public final class ArcheTextReader
 			
 			while (keepGoing)
 			{
-				if (currentType(Lexer.TYPE_IDENTIFIER))
+				if (currentType(Kernel.TYPE_IDENTIFIER))
 				{
 					if (lastWasValue)
 					{
@@ -1461,13 +1460,13 @@ public final class ArcheTextReader
 		// Token to value.
 		private boolean tokenToValue()
 		{
-			if (currentType(Lexer.TYPE_STRING))
+			if (currentType(Kernel.TYPE_STRING))
 			{
 				currentValue = new ArcheTextValue(Type.STRING, currentToken().getLexeme());
 				nextToken();
 				return true;
 			}
-			else if (currentType(Lexer.TYPE_NUMBER))
+			else if (currentType(Kernel.TYPE_NUMBER))
 			{
 				String lexeme = currentToken().getLexeme();
 				if (lexeme.startsWith("0X") || lexeme.startsWith("0x"))
@@ -1506,8 +1505,8 @@ public final class ArcheTextReader
 		{
 			switch (currentToken().getType())
 			{
-				case Lexer.TYPE_STRING:
-				case Lexer.TYPE_NUMBER:
+				case Kernel.TYPE_STRING:
+				case Kernel.TYPE_NUMBER:
 				case Kernel.TYPE_TRUE:
 				case Kernel.TYPE_FALSE:
 				case Kernel.TYPE_NULL:
@@ -1553,35 +1552,6 @@ public final class ArcheTextReader
 				default:
 					return false;
 			}
-		}
-		
-		@Override
-		protected String getTypeErrorText(int tokenType)
-		{
-			switch (tokenType)
-			{
-				case Kernel.TYPE_LPAREN:
-					return "'('";
-				case Kernel.TYPE_RPAREN:
-					return "')'";
-				case Kernel.TYPE_LBRACE:
-					return "'{'";
-				case Kernel.TYPE_RBRACE:
-					return "'}'";
-				case Kernel.TYPE_LBRACK:
-					return "'['";
-				case Kernel.TYPE_RBRACK:
-					return "']'";
-				case Kernel.TYPE_SEMICOLON:
-					return "';'";
-				case Kernel.TYPE_COLON:
-					return "':'";
-				case Kernel.TYPE_COMMA:
-					return "','";
-				default:
-					return "";
-			}
-			
 		}
 		
 	}
