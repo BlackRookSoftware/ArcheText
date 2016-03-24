@@ -6,7 +6,7 @@ Copyright (c) 2016 Black Rook Software. All rights reserved.
 
 ### Required Libraries
 
-Black Rook Commons 2.21.0+  
+Black Rook Commons 2.30.0+  
 [https://github.com/BlackRookSoftware/Common](https://github.com/BlackRookSoftware/Common)
 
 ### Introduction
