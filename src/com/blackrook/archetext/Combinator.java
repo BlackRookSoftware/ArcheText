@@ -20,7 +20,7 @@ public enum Combinator
 	SET("=")
 	{
 		@Override
-		public ArcheTextValue combine(ArcheTextValue operand, ArcheTextValue target)
+		public ArcheTextValue combine(ArcheTextValue operand, ArcheTextValue source)
 		{
 			return operand != null ? operand.copy() : null;
 		}
@@ -31,21 +31,21 @@ public enum Combinator
 	{
 		@Override
 		@SuppressWarnings("unchecked")
-		public ArcheTextValue combine(ArcheTextValue operand, ArcheTextValue target)
+		public ArcheTextValue combine(ArcheTextValue operand, ArcheTextValue source)
 		{
-			if (target.isNull())
+			if (source.isNull())
 				return new ArcheTextValue(Type.NULL, null);
 
-			switch (target.type)
+			switch (source.type)
 			{
 				default:
 				{
-					if (target.type.compareTo(operand.type) < 0)
-						target = target.promoteTo(operand.type);
-					else if (target.type.compareTo(operand.type) > 0)
-						operand = operand.promoteTo(target.type);
+					if (source.type.compareTo(operand.type) < 0)
+						source = source.promoteTo(operand.type);
+					else if (source.type.compareTo(operand.type) > 0)
+						operand = operand.promoteTo(source.type);
 					else
-						target = target.copy();
+						source = source.copy();
 				}
 				break;
 			}
@@ -55,20 +55,20 @@ public enum Combinator
 				case NULL:
 					return new ArcheTextValue(Type.NULL, null);
 				case BOOLEAN:
-					return new ArcheTextValue(Type.BOOLEAN, target.getBoolean() || operand.getBoolean());
+					return new ArcheTextValue(Type.BOOLEAN, source.getBoolean() || operand.getBoolean());
 				case INTEGER:
-					return new ArcheTextValue(Type.INTEGER, target.getLong() + operand.getLong());
+					return new ArcheTextValue(Type.INTEGER, source.getLong() + operand.getLong());
 				case FLOAT:
-					return new ArcheTextValue(Type.FLOAT, target.getDouble() + operand.getDouble());
+					return new ArcheTextValue(Type.FLOAT, source.getDouble() + operand.getDouble());
 				case STRING:
-					return new ArcheTextValue(Type.STRING, target.getString() + operand.getString());
+					return new ArcheTextValue(Type.STRING, source.getString() + operand.getString());
 				case SET:
-					return new ArcheTextValue(Type.SET, Hash.union((Hash<ArcheTextValue>)target.value, (Hash<ArcheTextValue>)operand.value));
+					return new ArcheTextValue(Type.SET, Hash.union((Hash<ArcheTextValue>)source.value, (Hash<ArcheTextValue>)operand.value));
 				case LIST:
 				{
 					// append
 					List<ArcheTextValue> list = new List<ArcheTextValue>();
-					for (ArcheTextValue val : (List<ArcheTextValue>)target.value)
+					for (ArcheTextValue val : (List<ArcheTextValue>)source.value)
 						list.add(val);
 					for (ArcheTextValue val : (List<ArcheTextValue>)operand.value)
 						list.add(val);
@@ -78,7 +78,7 @@ public enum Combinator
 				{
 					// combine
 					ArcheTextObject object = new ArcheTextObject();
-					object.cascade((ArcheTextObject)target.value);
+					object.cascade((ArcheTextObject)source.value);
 					object.cascade((ArcheTextObject)operand.value);
 					return new ArcheTextValue(Type.OBJECT, object);
 				}
@@ -92,21 +92,21 @@ public enum Combinator
 	{
 		@Override
 		@SuppressWarnings("unchecked")
-		public ArcheTextValue combine(ArcheTextValue operand, ArcheTextValue target)
+		public ArcheTextValue combine(ArcheTextValue operand, ArcheTextValue source)
 		{
-			if (target.isNull())
+			if (source.isNull())
 				return new ArcheTextValue(Type.NULL, null);
 
-			switch (target.type)
+			switch (source.type)
 			{
 				default:
 				{
-					if (target.type.compareTo(operand.type) < 0)
-						target = target.promoteTo(operand.type);
-					else if (target.type.compareTo(operand.type) > 0)
-						operand = operand.promoteTo(target.type);
+					if (source.type.compareTo(operand.type) < 0)
+						source = source.promoteTo(operand.type);
+					else if (source.type.compareTo(operand.type) > 0)
+						operand = operand.promoteTo(source.type);
 					else
-						target = target.copy();
+						source = source.copy();
 				}
 				break;
 			}
@@ -116,20 +116,20 @@ public enum Combinator
 				case NULL:
 					return new ArcheTextValue(Type.NULL, null);
 				case BOOLEAN:
-					return new ArcheTextValue(Type.BOOLEAN, target.getBoolean() || operand.getBoolean());
+					return new ArcheTextValue(Type.BOOLEAN, source.getBoolean() || operand.getBoolean());
 				case INTEGER:
-					return new ArcheTextValue(Type.INTEGER, target.getLong() - operand.getLong());
+					return new ArcheTextValue(Type.INTEGER, source.getLong() - operand.getLong());
 				case FLOAT:
-					return new ArcheTextValue(Type.FLOAT, target.getDouble() - operand.getDouble());
+					return new ArcheTextValue(Type.FLOAT, source.getDouble() - operand.getDouble());
 				case STRING:
-					return new ArcheTextValue(Type.STRING, target.getString().replace(operand.getString(), ""));
+					return new ArcheTextValue(Type.STRING, source.getString().replace(operand.getString(), ""));
 				case SET:
-					return new ArcheTextValue(Type.SET, Hash.difference((Hash<ArcheTextValue>)target.value, (Hash<ArcheTextValue>)operand.value));
+					return new ArcheTextValue(Type.SET, Hash.difference((Hash<ArcheTextValue>)source.value, (Hash<ArcheTextValue>)operand.value));
 				case LIST:
 				{
 					// remove
 					List<ArcheTextValue> list = new List<ArcheTextValue>();
-					for (ArcheTextValue val : (List<ArcheTextValue>)target.value)
+					for (ArcheTextValue val : (List<ArcheTextValue>)source.value)
 						list.add(val);
 					for (ArcheTextValue val : (List<ArcheTextValue>)operand.value)
 						list.remove(val);
@@ -148,30 +148,30 @@ public enum Combinator
 	MULTIPLY("*=")
 	{
 		@Override
-		public ArcheTextValue combine(ArcheTextValue operand, ArcheTextValue target)
+		public ArcheTextValue combine(ArcheTextValue operand, ArcheTextValue source)
 		{
-			if (target.isNull())
+			if (source.isNull())
 				return new ArcheTextValue(Type.NULL, null);
 
-			operatorObjectCheck("multiplication", operand, target);
+			operatorObjectCheck("multiplication", operand, source);
 
-			if (target.type.compareTo(operand.type) < 0)
-				target = target.promoteTo(operand.type);
-			else if (target.type.compareTo(operand.type) > 0)
-				operand = operand.promoteTo(target.type);
+			if (source.type.compareTo(operand.type) < 0)
+				source = source.promoteTo(operand.type);
+			else if (source.type.compareTo(operand.type) > 0)
+				operand = operand.promoteTo(source.type);
 			else
-				target = target.copy();
+				source = source.copy();
 			
 			switch (operand.type)
 			{
 				case NULL:
 					return new ArcheTextValue(Type.NULL, null);
 				case BOOLEAN:
-					return new ArcheTextValue(Type.BOOLEAN, target.getBoolean() && operand.getBoolean());
+					return new ArcheTextValue(Type.BOOLEAN, source.getBoolean() && operand.getBoolean());
 				case INTEGER:
-					return new ArcheTextValue(Type.INTEGER, target.getLong() * operand.getLong());
+					return new ArcheTextValue(Type.INTEGER, source.getLong() * operand.getLong());
 				case FLOAT:
-					return new ArcheTextValue(Type.FLOAT, target.getDouble() * operand.getDouble());
+					return new ArcheTextValue(Type.FLOAT, source.getDouble() * operand.getDouble());
 				default:
 					// fall out.
 			}
@@ -183,34 +183,34 @@ public enum Combinator
 	DIVISION("/=")
 	{
 		@Override
-		public ArcheTextValue combine(ArcheTextValue operand, ArcheTextValue target)
+		public ArcheTextValue combine(ArcheTextValue operand, ArcheTextValue source)
 		{
-			if (target.isNull())
+			if (source.isNull())
 				return new ArcheTextValue(Type.NULL, null);
 
-			operatorObjectCheck("division", operand, target);
+			operatorObjectCheck("division", operand, source);
 			
-			if (target.type.compareTo(operand.type) < 0)
-				target = target.promoteTo(operand.type);
-			else if (target.type.compareTo(operand.type) > 0)
-				operand = operand.promoteTo(target.type);
+			if (source.type.compareTo(operand.type) < 0)
+				source = source.promoteTo(operand.type);
+			else if (source.type.compareTo(operand.type) > 0)
+				operand = operand.promoteTo(source.type);
 			else
-				target = target.copy();
+				source = source.copy();
 			
 			switch (operand.type)
 			{
 				case BOOLEAN:
-					return new ArcheTextValue(Type.BOOLEAN, target.getBoolean() && operand.getBoolean());
+					return new ArcheTextValue(Type.BOOLEAN, source.getBoolean() && operand.getBoolean());
 				case INTEGER:
 					if (operand.getLong() == 0L)
 						throw new ArcheTextOperationException("Divide by zero.");
 					else
-						return new ArcheTextValue(Type.INTEGER, target.getLong() / operand.getLong());
+						return new ArcheTextValue(Type.INTEGER, source.getLong() / operand.getLong());
 				case FLOAT:
 					if (operand.getDouble() == 0.0)
 						throw new ArcheTextOperationException("Divide by zero.");
 					else
-						return new ArcheTextValue(Type.FLOAT, target.getDouble() / operand.getDouble());
+						return new ArcheTextValue(Type.FLOAT, source.getDouble() / operand.getDouble());
 				case NULL:
 					return new ArcheTextValue(Type.NULL, null);
 				default:
@@ -224,34 +224,34 @@ public enum Combinator
 	MODULO("%=")
 	{
 		@Override
-		public ArcheTextValue combine(ArcheTextValue operand, ArcheTextValue target)
+		public ArcheTextValue combine(ArcheTextValue operand, ArcheTextValue source)
 		{
-			if (target.isNull())
+			if (source.isNull())
 				return new ArcheTextValue(Type.NULL, null);
 
-			operatorObjectCheck("modulo", operand, target);
+			operatorObjectCheck("modulo", operand, source);
 
-			if (target.type.compareTo(operand.type) < 0)
-				target = target.promoteTo(operand.type);
-			else if (target.type.compareTo(operand.type) > 0)
-				operand = operand.promoteTo(target.type);
+			if (source.type.compareTo(operand.type) < 0)
+				source = source.promoteTo(operand.type);
+			else if (source.type.compareTo(operand.type) > 0)
+				operand = operand.promoteTo(source.type);
 			else
-				target = target.copy();
+				source = source.copy();
 			
 			switch (operand.type)
 			{
 				case BOOLEAN:
-					return new ArcheTextValue(Type.BOOLEAN, target.getBoolean() || operand.getBoolean());
+					return new ArcheTextValue(Type.BOOLEAN, source.getBoolean() || operand.getBoolean());
 				case INTEGER:
 					if (operand.getLong() == 0L)
 						throw new ArcheTextOperationException("Divide by zero.");
 					else
-						return new ArcheTextValue(Type.INTEGER, target.getLong() % operand.getLong());
+						return new ArcheTextValue(Type.INTEGER, source.getLong() % operand.getLong());
 				case FLOAT:
 					if (operand.getDouble() == 0.0)
 						throw new ArcheTextOperationException("Divide by zero.");
 					else
-						return new ArcheTextValue(Type.FLOAT, target.getDouble() % operand.getDouble());
+						return new ArcheTextValue(Type.FLOAT, source.getDouble() % operand.getDouble());
 				case NULL:
 					return new ArcheTextValue(Type.NULL, null);
 				default:
@@ -265,28 +265,28 @@ public enum Combinator
 	POWER("'=")
 	{
 		@Override
-		public ArcheTextValue combine(ArcheTextValue operand, ArcheTextValue target)
+		public ArcheTextValue combine(ArcheTextValue operand, ArcheTextValue source)
 		{
-			if (target.isNull())
+			if (source.isNull())
 				return new ArcheTextValue(Type.NULL, null);
 
-			operatorObjectCheck("power", operand, target);
+			operatorObjectCheck("power", operand, source);
 
-			if (target.type.compareTo(operand.type) < 0)
-				target = target.promoteTo(operand.type);
-			else if (target.type.compareTo(operand.type) > 0)
-				operand = operand.promoteTo(target.type);
+			if (source.type.compareTo(operand.type) < 0)
+				source = source.promoteTo(operand.type);
+			else if (source.type.compareTo(operand.type) > 0)
+				operand = operand.promoteTo(source.type);
 			else
-				target = target.copy();
+				source = source.copy();
 			
 			switch (operand.type)
 			{
 				case BOOLEAN:
-					return new ArcheTextValue(Type.BOOLEAN, target.getBoolean() && operand.getBoolean());
+					return new ArcheTextValue(Type.BOOLEAN, source.getBoolean() && operand.getBoolean());
 				case INTEGER:
-					return new ArcheTextValue(Type.INTEGER, (long)Math.pow(target.getLong(), operand.getLong()));
+					return new ArcheTextValue(Type.INTEGER, (long)Math.pow(source.getLong(), operand.getLong()));
 				case FLOAT:
-					return new ArcheTextValue(Type.FLOAT, Math.pow(target.getDouble(), operand.getDouble()));
+					return new ArcheTextValue(Type.FLOAT, Math.pow(source.getDouble(), operand.getDouble()));
 				case NULL:
 					return new ArcheTextValue(Type.NULL, null);
 				default:
@@ -301,32 +301,32 @@ public enum Combinator
 	{
 		@Override
 		@SuppressWarnings("unchecked")
-		public ArcheTextValue combine(ArcheTextValue operand, ArcheTextValue target)
+		public ArcheTextValue combine(ArcheTextValue operand, ArcheTextValue source)
 		{
-			if (target.isNull())
+			if (source.isNull())
 				return new ArcheTextValue(Type.NULL, null);
 
 			// set and set
-			if (target.type == Type.SET && operand.type == Type.SET)
+			if (source.type == Type.SET && operand.type == Type.SET)
 			{
-				return new ArcheTextValue(Type.SET, Hash.intersection((Hash<ArcheTextValue>)target.value, (Hash<ArcheTextValue>)operand.value));
+				return new ArcheTextValue(Type.SET, Hash.intersection((Hash<ArcheTextValue>)source.value, (Hash<ArcheTextValue>)operand.value));
 			}
 			
-			operatorObjectCheck("bitwise-and", operand, target);
+			operatorObjectCheck("bitwise-and", operand, source);
 
 			long targbits = 0L;
 			long operandbits = 0L;
 			
-			switch (target.type)
+			switch (source.type)
 			{
 				case BOOLEAN:
-					targbits = target.getBoolean() ? -1L : 0L;
+					targbits = source.getBoolean() ? -1L : 0L;
 					break;
 				case INTEGER:
-					targbits = target.getLong();
+					targbits = source.getLong();
 					break;
 				case FLOAT:
-					targbits = Double.doubleToRawLongBits(target.getDouble());
+					targbits = Double.doubleToRawLongBits(source.getDouble());
 					break;
 				case NULL:
 					return new ArcheTextValue(Type.NULL, null);
@@ -352,7 +352,7 @@ public enum Combinator
 			}
 			
 			long result = targbits & operandbits;
-			Type maxtype = target.type.ordinal() > operand.type.ordinal() ? target.type : operand.type;
+			Type maxtype = source.type.ordinal() > operand.type.ordinal() ? source.type : operand.type;
 			
 			switch (maxtype)
 			{
@@ -371,34 +371,32 @@ public enum Combinator
 	{
 		@Override
 		@SuppressWarnings("unchecked")
-		public ArcheTextValue combine(ArcheTextValue operand, ArcheTextValue target)
+		public ArcheTextValue combine(ArcheTextValue operand, ArcheTextValue source)
 		{
-			if (target == null)
-				return operand.copy();
-			if (target.isNull())
+			if (source.isNull())
 				return new ArcheTextValue(Type.NULL, null);
 
 			// set and set
-			if (target.type == Type.SET && operand.type == Type.SET)
+			if (source.type == Type.SET && operand.type == Type.SET)
 			{
-				return new ArcheTextValue(Type.SET, Hash.union((Hash<ArcheTextValue>)target.value, (Hash<ArcheTextValue>)operand.value));
+				return new ArcheTextValue(Type.SET, Hash.union((Hash<ArcheTextValue>)source.value, (Hash<ArcheTextValue>)operand.value));
 			}
 			
-			operatorObjectCheck("bitwise-or", operand, target);
+			operatorObjectCheck("bitwise-or", operand, source);
 
 			long targbits = 0L;
 			long operandbits = 0L;
 			
-			switch (target.type)
+			switch (source.type)
 			{
 				case BOOLEAN:
-					targbits = target.getBoolean() ? -1L : 0L;
+					targbits = source.getBoolean() ? -1L : 0L;
 					break;
 				case INTEGER:
-					targbits = target.getLong();
+					targbits = source.getLong();
 					break;
 				case FLOAT:
-					targbits = Double.doubleToRawLongBits(target.getDouble());
+					targbits = Double.doubleToRawLongBits(source.getDouble());
 					break;
 				case NULL:
 					return new ArcheTextValue(Type.NULL, null);
@@ -424,7 +422,7 @@ public enum Combinator
 			}
 			
 			long result = targbits | operandbits;
-			Type maxtype = target.type.ordinal() > operand.type.ordinal() ? target.type : operand.type;
+			Type maxtype = source.type.ordinal() > operand.type.ordinal() ? source.type : operand.type;
 			
 			switch (maxtype)
 			{
@@ -443,34 +441,32 @@ public enum Combinator
 	{
 		@Override
 		@SuppressWarnings("unchecked")
-		public ArcheTextValue combine(ArcheTextValue operand, ArcheTextValue target)
+		public ArcheTextValue combine(ArcheTextValue operand, ArcheTextValue source)
 		{
-			if (target == null)
-				return operand.copy();
-			if (target.isNull())
+			if (source.isNull())
 				return new ArcheTextValue(Type.NULL, null);
 
 			// set and set
-			if (target.type == Type.SET && operand.type == Type.SET)
+			if (source.type == Type.SET && operand.type == Type.SET)
 			{
-				return new ArcheTextValue(Type.SET, Hash.xor((Hash<ArcheTextValue>)target.value, (Hash<ArcheTextValue>)operand.value));
+				return new ArcheTextValue(Type.SET, Hash.xor((Hash<ArcheTextValue>)source.value, (Hash<ArcheTextValue>)operand.value));
 			}
 			
-			operatorObjectCheck("bitwise-xor", operand, target);
+			operatorObjectCheck("bitwise-xor", operand, source);
 
 			long targbits = 0L;
 			long operandbits = 0L;
 			
-			switch (target.type)
+			switch (source.type)
 			{
 				case BOOLEAN:
-					targbits = target.getBoolean() ? -1L : 0L;
+					targbits = source.getBoolean() ? -1L : 0L;
 					break;
 				case INTEGER:
-					targbits = target.getLong();
+					targbits = source.getLong();
 					break;
 				case FLOAT:
-					targbits = Double.doubleToRawLongBits(target.getDouble());
+					targbits = Double.doubleToRawLongBits(source.getDouble());
 					break;
 				case NULL:
 					return new ArcheTextValue(Type.NULL, null);
@@ -496,7 +492,7 @@ public enum Combinator
 			}
 			
 			long result = targbits ^ operandbits;
-			Type maxtype = target.type.ordinal() > operand.type.ordinal() ? target.type : operand.type;
+			Type maxtype = source.type.ordinal() > operand.type.ordinal() ? source.type : operand.type;
 			
 			switch (maxtype)
 			{
@@ -515,33 +511,31 @@ public enum Combinator
 	{
 		@Override
 		@SuppressWarnings("unchecked")
-		public ArcheTextValue combine(ArcheTextValue operand, ArcheTextValue target)
+		public ArcheTextValue combine(ArcheTextValue operand, ArcheTextValue source)
 		{
-			if (target == null)
-				return operand.copy();
-			if (target.isNull())
+			if (source.isNull())
 				return new ArcheTextValue(Type.NULL, null);
 
 			List<ArcheTextValue> list = null;
 			long targbits = 0L;
 			int operandValue = 0;
 			
-			switch (target.type)
+			switch (source.type)
 			{
 				case LIST:
 				{
-					list = (List<ArcheTextValue>)target.value;
+					list = (List<ArcheTextValue>)source.value;
 					break;
 				}
 				
 				case BOOLEAN:
-					targbits = target.getBoolean() ? -1L : 0L;
+					targbits = source.getBoolean() ? -1L : 0L;
 					break;
 				case INTEGER:
-					targbits = target.getLong();
+					targbits = source.getLong();
 					break;
 				case FLOAT:
-					targbits = Double.doubleToRawLongBits(target.getDouble());
+					targbits = Double.doubleToRawLongBits(source.getDouble());
 					break;
 				case STRING:
 					throw new ArcheTextOperationException("Can't use a left shift operator with strings.");
@@ -596,7 +590,7 @@ public enum Combinator
 			else
 			{
 				long result = targbits << operandValue;
-				Type maxtype = target.type.ordinal() > operand.type.ordinal() ? target.type : operand.type;
+				Type maxtype = source.type.ordinal() > operand.type.ordinal() ? source.type : operand.type;
 				
 				switch (maxtype)
 				{
@@ -618,33 +612,33 @@ public enum Combinator
 	{
 		@Override
 		@SuppressWarnings("unchecked")
-		public ArcheTextValue combine(ArcheTextValue operand, ArcheTextValue target)
+		public ArcheTextValue combine(ArcheTextValue operand, ArcheTextValue source)
 		{
-			if (target == null)
+			if (source == null)
 				return operand.copy();
-			if (target.isNull())
+			if (source.isNull())
 				return new ArcheTextValue(Type.NULL, null);
 
 			List<ArcheTextValue> list = null;
 			long targbits = 0L;
 			int operandValue = 0;
 			
-			switch (target.type)
+			switch (source.type)
 			{
 				case LIST:
 				{
-					list = (List<ArcheTextValue>)target.value;
+					list = (List<ArcheTextValue>)source.value;
 					break;
 				}
 				
 				case BOOLEAN:
-					targbits = target.getBoolean() ? -1L : 0L;
+					targbits = source.getBoolean() ? -1L : 0L;
 					break;
 				case INTEGER:
-					targbits = target.getLong();
+					targbits = source.getLong();
 					break;
 				case FLOAT:
-					targbits = Double.doubleToRawLongBits(target.getDouble());
+					targbits = Double.doubleToRawLongBits(source.getDouble());
 					break;
 				case STRING:
 					throw new ArcheTextOperationException("Can't use a right shift operator with strings.");
@@ -699,7 +693,7 @@ public enum Combinator
 			else
 			{
 				long result = targbits >> operandValue;
-				Type maxtype = target.type.ordinal() > operand.type.ordinal() ? target.type : operand.type;
+				Type maxtype = source.type.ordinal() > operand.type.ordinal() ? source.type : operand.type;
 				
 				switch (maxtype)
 				{
@@ -721,33 +715,33 @@ public enum Combinator
 	{
 		@Override
 		@SuppressWarnings("unchecked")
-		public ArcheTextValue combine(ArcheTextValue operand, ArcheTextValue target)
+		public ArcheTextValue combine(ArcheTextValue operand, ArcheTextValue source)
 		{
-			if (target == null)
+			if (source == null)
 				return operand.copy();
-			if (target.isNull())
+			if (source.isNull())
 				return new ArcheTextValue(Type.NULL, null);
 
 			List<ArcheTextValue> list = null;
 			long targbits = 0L;
 			int operandValue = 0;
 			
-			switch (target.type)
+			switch (source.type)
 			{
 				case LIST:
 				{
-					list = (List<ArcheTextValue>)target.value;
+					list = (List<ArcheTextValue>)source.value;
 					break;
 				}
 				
 				case BOOLEAN:
-					targbits = target.getBoolean() ? -1L : 0L;
+					targbits = source.getBoolean() ? -1L : 0L;
 					break;
 				case INTEGER:
-					targbits = target.getLong();
+					targbits = source.getLong();
 					break;
 				case FLOAT:
-					targbits = Double.doubleToRawLongBits(target.getDouble());
+					targbits = Double.doubleToRawLongBits(source.getDouble());
 					break;
 				case STRING:
 					throw new ArcheTextOperationException("Can't use a right padded shift operator with strings.");
@@ -802,7 +796,7 @@ public enum Combinator
 			else
 			{
 				long result = targbits >>> operandValue;
-				Type maxtype = target.type.ordinal() > operand.type.ordinal() ? target.type : operand.type;
+				Type maxtype = source.type.ordinal() > operand.type.ordinal() ? source.type : operand.type;
 				
 				switch (maxtype)
 				{
@@ -836,12 +830,18 @@ public enum Combinator
 		return assignmentOperator;
 	}
 
-	/** Combines two values. */
-	public abstract ArcheTextValue combine(ArcheTextValue operand, ArcheTextValue target);
+	/** 
+	 * Combines two values.
+	 * @param operand the incoming value.
+	 * @param source the source value that this is combining with.
+	 * @return the resultant value.
+	 * @throws NullPointerException if source is null. If source is supposed to be null, use {@link ArcheTextValue#NULL}.
+	 */
+	public abstract ArcheTextValue combine(ArcheTextValue operand, ArcheTextValue source);
 
-	private static void operatorObjectCheck(String operatorName, ArcheTextValue operand, ArcheTextValue target)
+	private static void operatorObjectCheck(String operatorName, ArcheTextValue operand, ArcheTextValue source)
 	{
-		switch (target.type)
+		switch (source.type)
 		{
 			case STRING:
 				throw new ArcheTextOperationException("Can't use a " + operatorName + " operator with strings.");

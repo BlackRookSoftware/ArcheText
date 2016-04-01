@@ -25,6 +25,9 @@ import com.blackrook.commons.list.List;
  */
 public final class ArcheTextValue
 {
+	/** Null value. */
+	public static final ArcheTextValue NULL = new ArcheTextValue(Type.NULL, null);
+	
 	/**
 	 * ArcheText value internal types.
 	 */
@@ -78,7 +81,7 @@ public final class ArcheTextValue
 	public static <T> ArcheTextValue create(T object)
 	{
 		if (object == null)
-			return new ArcheTextValue(Type.NULL, null);
+			return ArcheTextValue.NULL;
 		else if (object instanceof ArcheTextObject)
 		{
 			return new ArcheTextValue(Type.OBJECT, object);
@@ -272,12 +275,12 @@ public final class ArcheTextValue
 	/**
 	 * Combines this value with another and returns the result.
 	 * @param combinator the combinator to use.
-	 * @param value the value to combine with. 
+	 * @param source the source value to combine this with.
 	 * @return the new value.
 	 */
-	public ArcheTextValue combineWith(Combinator combinator, ArcheTextValue value)
+	public ArcheTextValue combineWith(Combinator combinator, ArcheTextValue source)
 	{
-		return combinator.combine(this, value);
+		return combinator.combine(this, source == null ? ArcheTextValue.NULL : source);
 	}
 	
 	/**
@@ -398,7 +401,7 @@ public final class ArcheTextValue
 		switch (promotionType)
 		{
 			default:
-				throw new ArcheTextOperationException("Cannot promote object to "+promotionType);
+				throw new ArcheTextOperationException("Cannot promote "+type.name()+" to "+promotionType.name());
 			case INTEGER:
 				return new ArcheTextValue(Type.INTEGER, ((Boolean)value) ? 1L : 0L);
 			case FLOAT:
@@ -421,7 +424,7 @@ public final class ArcheTextValue
 		switch (promotionType)
 		{
 			default:
-				throw new ArcheTextOperationException("Cannot promote object to "+promotionType);
+				throw new ArcheTextOperationException("Cannot promote "+type.name()+" to "+promotionType.name());
 			case FLOAT:
 				return new ArcheTextValue(Type.FLOAT, ((Number)value).doubleValue());
 			case STRING:
@@ -442,7 +445,7 @@ public final class ArcheTextValue
 		switch (promotionType)
 		{
 			default:
-				throw new ArcheTextOperationException("Cannot promote object to "+promotionType);
+				throw new ArcheTextOperationException("Cannot promote "+type.name()+" to "+promotionType.name());
 			case STRING:
 				return new ArcheTextValue(Type.STRING, String.valueOf(value));
 			case SET:
@@ -461,7 +464,7 @@ public final class ArcheTextValue
 		switch (promotionType)
 		{
 			default:
-				throw new ArcheTextOperationException("Cannot promote object to "+promotionType);
+				throw new ArcheTextOperationException("Cannot promote "+type.name()+" to "+promotionType.name());
 			case SET:
 				Hash<ArcheTextValue> set = new Hash<ArcheTextValue>(1);
 				set.put(create(value));
@@ -478,7 +481,7 @@ public final class ArcheTextValue
 		switch (promotionType)
 		{
 			default:
-				throw new ArcheTextOperationException("Cannot promote object to "+promotionType);
+				throw new ArcheTextOperationException("Cannot promote "+type.name()+" to "+promotionType.name());
 			case LIST:
 				@SuppressWarnings("unchecked")
 				Hash<ArcheTextValue> set = (Hash<ArcheTextValue>)value;
@@ -491,7 +494,7 @@ public final class ArcheTextValue
 
 	private ArcheTextValue promoteArrayTo(Type promotionType)
 	{
-		throw new ArcheTextOperationException("Cannot promote object to "+promotionType);
+		throw new ArcheTextOperationException("Cannot promote "+type.name()+" to "+promotionType.name());
 	}
 	
 	@Override

@@ -1404,45 +1404,45 @@ public final class ArcheTextReader
 					}
 
 					ArcheTextValue operand = valueStack.pop();
-					ArcheTextValue target = valueStack.pop();
+					ArcheTextValue source = valueStack.pop();
 
 					switch (operator)
 					{
 						case ADD:
-							valueStack.push(Combinator.ADD.combine(operand, target));
+							valueStack.push(Combinator.ADD.combine(operand, source));
 							break;
 						case SUBTRACT:
-							valueStack.push(Combinator.SUBTRACT.combine(operand, target));
+							valueStack.push(Combinator.SUBTRACT.combine(operand, source));
 							break;
 						case MULTIPLY:
-							valueStack.push(Combinator.MULTIPLY.combine(operand, target));
+							valueStack.push(Combinator.MULTIPLY.combine(operand, source));
 							break;
 						case DIVIDE:
-							valueStack.push(Combinator.DIVISION.combine(operand, target));
+							valueStack.push(Combinator.DIVISION.combine(operand, source));
 							break;
 						case MODULO:
-							valueStack.push(Combinator.MODULO.combine(operand, target));
+							valueStack.push(Combinator.MODULO.combine(operand, source));
 							break;
 						case POWER:
-							valueStack.push(Combinator.POWER.combine(operand, target));
+							valueStack.push(Combinator.POWER.combine(operand, source));
 							break;
 						case AND:
-							valueStack.push(Combinator.BITWISEAND.combine(operand, target));
+							valueStack.push(Combinator.BITWISEAND.combine(operand, source));
 							break;
 						case OR:
-							valueStack.push(Combinator.BITWISEOR.combine(operand, target));
+							valueStack.push(Combinator.BITWISEOR.combine(operand, source));
 							break;
 						case XOR:
-							valueStack.push(Combinator.BITWISEXOR.combine(operand, target));
+							valueStack.push(Combinator.BITWISEXOR.combine(operand, source));
 							break;
 						case LSHIFT:
-							valueStack.push(Combinator.LEFTSHIFT.combine(operand, target));
+							valueStack.push(Combinator.LEFTSHIFT.combine(operand, source));
 							break;
 						case RSHIFT:
-							valueStack.push(Combinator.RIGHTSHIFT.combine(operand, target));
+							valueStack.push(Combinator.RIGHTSHIFT.combine(operand, source));
 							break;
 						case RSHIFTPAD:
-							valueStack.push(Combinator.RIGHTPADDINGSHIFT.combine(operand, target));
+							valueStack.push(Combinator.RIGHTPADDINGSHIFT.combine(operand, source));
 							break;
 						default:
 							throw new ArcheTextParseException("Internal error - binary operator state should not have been reached.");

@@ -299,10 +299,7 @@ public class ArcheTextObject
 		while (!fields.isEmpty())
 		{
 			AField field = fields.pop();
-			if (out == null)
-				out = field.value.copy();
-			else
-				out = field.value.combineWith(field.combinator, out); 
+			out = field.value.combineWith(field.combinator, out); 
 		}
 		
 		return out;
