@@ -275,7 +275,7 @@ public final class ArcheTextValue
 	/**
 	 * Combines this value with another and returns the result.
 	 * @param combinator the combinator to use.
-	 * @param source the source value to combine this with.
+	 * @param source the source value to combine this with. Can be null for {@link #NULL}.
 	 * @return the new value.
 	 */
 	public ArcheTextValue combineWith(Combinator combinator, ArcheTextValue source)

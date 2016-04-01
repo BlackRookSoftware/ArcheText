@@ -24,8 +24,8 @@ person "Scranton"
 	location = "Scranton, PA";
 }
 
-person "Matt" : person "Scranton" : person "male" : person "female"
+person "Matt" <- person "Scranton" : person "male" : person "female"
 {
-	age /= 5;
+	age += 5;
 }
 
