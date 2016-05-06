@@ -971,6 +971,7 @@ public final class ArcheTextReader
 		/*
 		 *	<Value> :=
 		 *		"@" <ATDeclaration>
+		 *		"{" <ATFieldList> "}"
 		 *		[EXPRESSION]
 		 */
 		private boolean parseValue()
@@ -1110,14 +1111,42 @@ public final class ArcheTextReader
 					}
 					
 					String identname = currentToken().getLexeme();
-					
-					ArcheTextValue val = currentObject.getField(identname);
-					if (val != null)
-						val = val.copy();
-
-					valueStack.push(val);
-					
 					nextToken();
+
+					// check prototype or value.
+					if (currentType(Kernel.TYPE_LPAREN))
+					{
+						ArcheTextObject object = new ArcheTextObject(identname, null);
+						
+						// check for prototype.
+						if (!prototypes.containsKey(object.getType()))
+						{
+							addErrorMessage("Prototyped structure has no matching prototype delcaration for type \""+object.getType()+"\".");
+							return false;
+						}
+
+						nextToken();
+
+						if (!parseATPrototypeFieldList(object, prototypes.get(object.getType())))
+							return false;
+						
+						if (!matchType(Kernel.TYPE_RPAREN))
+						{
+							addErrorMessage("Expected ',' or end of prototyped object declaration (')').");
+							return false;
+						}
+						
+						valueStack.push(new ArcheTextValue(Type.OBJECT, object));
+					}
+					else
+					{
+						ArcheTextValue val = currentObject.getField(identname);
+						if (val != null)
+							val = val.copy();
+
+						valueStack.push(val);
+					}
+					
 					lastWasValue = true;
 				}
 				else if (matchType(Kernel.TYPE_LBRACE))
@@ -1150,14 +1179,17 @@ public final class ArcheTextReader
 					}
 					
 					List<ArcheTextValue> list = new List<ArcheTextValue>(); 
-					
-					if (!parseListBody(list))
-						return false;
-					
+
 					if (!matchType(Kernel.TYPE_RBRACK))
 					{
-						addErrorMessage("Expected end of list declaration (']').");
-						return false;
+						if (!parseListBody(list))
+							return false;
+						
+						if (!matchType(Kernel.TYPE_RBRACK))
+						{
+							addErrorMessage("Expected end of list declaration (']').");
+							return false;
+						}
 					}
 
 					valueStack.push(new ArcheTextValue(Type.LIST, list));
@@ -1173,13 +1205,16 @@ public final class ArcheTextReader
 					
 					Hash<ArcheTextValue> set = new Hash<ArcheTextValue>(); 
 					
-					if (!parseSetBody(set))
-						return false;
-					
 					if (!matchType(Kernel.TYPE_RANGLEBRACK))
 					{
-						addErrorMessage("Expected end of set declaration ('>').");
-						return false;
+						if (!parseSetBody(set))
+							return false;
+						
+						if (!matchType(Kernel.TYPE_RANGLEBRACK))
+						{
+							addErrorMessage("Expected end of set declaration ('>').");
+							return false;
+						}
 					}
 
 					valueStack.push(new ArcheTextValue(Type.SET, set));

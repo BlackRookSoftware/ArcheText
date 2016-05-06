@@ -86,7 +86,7 @@ public class ArcheTextObject
 	public ArcheTextObject(String type, String name)
 	{
 		if (!Common.isEmpty(name) && Common.isEmpty(type))
-			throw new IllegalArgumentException("type cannot be empty if the name is.");
+			throw new IllegalArgumentException("type cannot be empty if the name is not empty.");
 		this.type = type;
 		this.name = name;
 	}
