@@ -251,7 +251,7 @@ public class ArcheTextObject
 	
 	/**
 	 * Gets the value of a field, searching through its lineage
-	 * if it doesn't exist in this one, combining vales as necessary.
+	 * if it doesn't exist in this one, combining values as necessary.
 	 * @param name the name of the field.
 	 * @return the value, as an object.
 	 */
@@ -262,7 +262,7 @@ public class ArcheTextObject
 	
 	/**
 	 * Gets the value of a field, searching through its lineage
-	 * if it doesn't exist in this one, combining vales as necessary.
+	 * if it doesn't exist in this one, combining values as necessary.
 	 * @param name the name of the field.
 	 * @param outputType the output type to convert to.
 	 * @return the value converted to the desired type.
