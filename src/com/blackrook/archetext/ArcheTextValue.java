@@ -11,9 +11,11 @@ import java.lang.reflect.Array;
 import java.util.Map;
 import java.util.Set;
 
+import com.blackrook.archetext.exception.ArcheTextConversionException;
 import com.blackrook.archetext.exception.ArcheTextOperationException;
 import com.blackrook.commons.AbstractMap;
 import com.blackrook.commons.AbstractSet;
+import com.blackrook.commons.AbstractVector;
 import com.blackrook.commons.ObjectPair;
 import com.blackrook.commons.Reflect;
 import com.blackrook.commons.hash.Hash;
@@ -145,6 +147,86 @@ public final class ArcheTextValue
 			return new ArcheTextValue(Type.STRING, object);
 		else
 			return new ArcheTextValue(Type.OBJECT, ArcheTextFactory.create(object));
+	}
+
+	/**
+	 * Converts this value to another Java object type.
+	 * @param memberName the name of this value, if a member of another object.
+	 * @param type
+	 * @return
+	 */
+	public <T> T createForType(String memberName, Class<T> type)
+	{
+		if (this == null)
+			return Reflect.createForType(null, type);
+		
+		Type attype = this.type;
+		
+		switch (attype)
+		{
+			default:
+			case BOOLEAN:
+			case FLOAT:
+			case INTEGER:
+			case STRING:
+				return Reflect.createForType(this.value, type);
+			case LIST:
+			{
+				@SuppressWarnings("unchecked")
+				AbstractVector<ArcheTextValue> val = (AbstractVector<ArcheTextValue>)this.value;
+				
+				// type is array
+				if (Reflect.isArray(type))
+				{
+					Class<?> atype = Reflect.getArrayType(type);
+					if (atype == null)
+						throw new ArcheTextConversionException((memberName != null ? "Member "+memberName : "Value") + " cannot be converted; member is list and target is not array typed.");
+					
+					Object newarray = Array.newInstance(atype, val.size());
+					for (int i = 0; i < val.size(); i++)
+						Array.set(newarray, i, val.getByIndex(i).createForType(String.format("%s[%d]", memberName, i), atype));
+						
+					return type.cast(newarray);
+				}
+				else
+					throw new ClassCastException((memberName != null ? "Member "+memberName : "Value") + " cannot be converted; member is list and target is not array typed.");
+			}
+			
+			case SET:
+			{
+				@SuppressWarnings("unchecked")
+				Hash<ArcheTextValue> val = (Hash<ArcheTextValue>)this.value;
+				
+				// type is array
+				if (Reflect.isArray(type))
+				{
+					Class<?> atype = Reflect.getArrayType(type);
+					if (atype == null)
+						throw new ArcheTextConversionException((memberName != null ? "Member "+memberName : "Value") + " cannot be converted; member is set and target is not array typed.");
+					
+					Object newarray = Array.newInstance(atype, val.size());
+					int i = 0;
+					for (ArcheTextValue v : val)
+					{
+						Array.set(newarray, i, v.createForType(String.format("%s[%d]", memberName, i), atype));
+						i++;
+					}
+						
+					return type.cast(newarray);
+				}
+				else
+					throw new ClassCastException((memberName != null ? "Member "+memberName : "Value") + " cannot be converted; member is set and target is not array typed.");
+			}
+			
+			case OBJECT:
+			{
+				ArcheTextObject val = (ArcheTextObject)this.value;
+				T obj = val.newObject(type);
+				return obj;
+			}
+			
+		}
+		
 	}
 
 	@Override

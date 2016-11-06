@@ -7,15 +7,12 @@
  ******************************************************************************/
 package com.blackrook.archetext;
 
-import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.Iterator;
 
-import com.blackrook.archetext.ArcheTextValue.Type;
 import com.blackrook.archetext.annotation.ATIgnore;
 import com.blackrook.archetext.annotation.ATName;
 import com.blackrook.commons.AbstractSet;
-import com.blackrook.commons.AbstractVector;
 import com.blackrook.commons.Common;
 import com.blackrook.commons.ObjectPair;
 import com.blackrook.commons.Reflect;
@@ -26,7 +23,6 @@ import com.blackrook.commons.hash.Hash;
 import com.blackrook.commons.hash.HashMap;
 import com.blackrook.commons.linkedlist.Queue;
 import com.blackrook.commons.linkedlist.Stack;
-import com.blackrook.lang.json.JSONConversionException;
 
 /**
  * The object representation for all ArcheText objects and values.
@@ -271,9 +267,9 @@ public class ArcheTextObject
 	{
 		ArcheTextValue rv = getField(name);
 		if (rv == null)
-			return createForType(name, null, outputType);
+			return Reflect.createForType(null, outputType);
 		else
-			return createForType(name, rv, outputType); 
+			return rv.createForType(name, outputType); 
 	}
 	
 	/**
@@ -422,81 +418,6 @@ public class ArcheTextObject
 			Reflect.invokeBlind(setter.getMethod(), object, Reflect.createForType(getName(), String.class));			
 		
 		return object;
-	}
-	
-	/** Creates a */
-	private static <T extends Object> T createForType(String memberName, ArcheTextValue atvalue, Class<T> type)
-	{
-		if (atvalue == null)
-			return Reflect.createForType(null, type);
-		
-		Type attype = atvalue.type;
-		
-		switch (attype)
-		{
-			default:
-			case BOOLEAN:
-			case FLOAT:
-			case INTEGER:
-			case STRING:
-				return Reflect.createForType(atvalue.value, type);
-			case LIST:
-			{
-				@SuppressWarnings("unchecked")
-				AbstractVector<ArcheTextValue> val = (AbstractVector<ArcheTextValue>)atvalue.value;
-				
-				// type is array
-				if (Reflect.isArray(type))
-				{
-					Class<?> atype = Reflect.getArrayType(type);
-					if (atype == null)
-						throw new JSONConversionException("Member "+memberName+" cannot be converted; member is list and target is not array typed.");
-					
-					Object newarray = Array.newInstance(atype, val.size());
-					for (int i = 0; i < val.size(); i++)
-						Array.set(newarray, i, createForType(String.format("%s[%d]", memberName, i), val.getByIndex(i), atype));
-						
-					return type.cast(newarray);
-				}
-				else
-					throw new ClassCastException("Member "+memberName+" cannot be converted; member is list and target is not array typed.");
-			}
-			
-			case SET:
-			{
-				@SuppressWarnings("unchecked")
-				Hash<ArcheTextValue> val = (Hash<ArcheTextValue>)atvalue.value;
-				
-				// type is array
-				if (Reflect.isArray(type))
-				{
-					Class<?> atype = Reflect.getArrayType(type);
-					if (atype == null)
-						throw new JSONConversionException("Member "+memberName+" cannot be converted; member is set and target is not array typed.");
-					
-					Object newarray = Array.newInstance(atype, val.size());
-					int i = 0;
-					for (ArcheTextValue v : val)
-					{
-						Array.set(newarray, i, createForType(String.format("%s[%d]", memberName, i), v, atype));
-						i++;
-					}
-						
-					return type.cast(newarray);
-				}
-				else
-					throw new ClassCastException("Member "+memberName+" cannot be converted; member is set and target is not array typed.");
-			}
-			
-			case OBJECT:
-			{
-				ArcheTextObject val = (ArcheTextObject)atvalue.value;
-				T obj = val.newObject(type);
-				return obj;
-			}
-			
-		}
-			
 	}
 	
 	/**
