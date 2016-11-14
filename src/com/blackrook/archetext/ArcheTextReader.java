@@ -1143,6 +1143,11 @@ public final class ArcheTextReader
 						ArcheTextValue val = currentObject.getField(identname);
 						if (val != null)
 							val = val.copy();
+						else
+						{
+							addErrorMessage("Expression error - no such field \""+identname+"\" in expression.");
+							return false;
+						}
 
 						valueStack.push(val);
 					}

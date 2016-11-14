@@ -835,7 +835,7 @@ public enum Combinator
 	 * @param operand the incoming value.
 	 * @param source the source value that this is combining with.
 	 * @return the resultant value.
-	 * @throws NullPointerException if source is null. If source is supposed to be null, use {@link ArcheTextValue#NULL}.
+	 * @throws NullPointerException if source or operand is null. If source or operand is supposed to be null, use {@link ArcheTextValue#NULL}.
 	 */
 	public abstract ArcheTextValue combine(ArcheTextValue operand, ArcheTextValue source);
 
