@@ -220,9 +220,25 @@ public final class ArcheTextValue
 			
 			case OBJECT:
 			{
-				ArcheTextObject val = (ArcheTextObject)this.value;
-				T obj = val.newObject(type);
-				return obj;
+				// type is array
+				if (Reflect.isArray(type))
+				{
+					Class<?> atype = Reflect.getArrayType(type);
+					if (atype == null)
+						throw new ArcheTextConversionException((memberName != null ? "Member "+memberName : "Value") + " cannot be converted; member is set and target is not array typed.");
+
+					Object newarray = Array.newInstance(atype, 1);
+					ArcheTextObject val = (ArcheTextObject)this.value;
+					Array.set(newarray, 0, val.newObject(atype));
+					return type.cast(newarray);
+				}
+				else
+				{
+					ArcheTextObject val = (ArcheTextObject)this.value;
+					T obj = val.newObject(type);
+					return obj;
+				}
+				
 			}
 			
 		}
