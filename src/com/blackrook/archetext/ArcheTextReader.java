@@ -981,20 +981,33 @@ public final class ArcheTextReader
 			return true;
 		}
 		
+		// @{person "Bob"}
+		
 		/*
 		 *	<Value> :=
-		 *		"@" <ATDeclaration>
+		 *		"@" "{" <ATDeclaration> "}"
 		 *		"{" <ATFieldList> "}"
 		 *		[EXPRESSION]
 		 */
 		private boolean parseValue()
 		{
-			
 			if (matchType(Kernel.TYPE_AT))
 			{
+				if (!matchType(Kernel.TYPE_LBRACE))
+				{
+					addErrorMessage("Expected '{' after object reference operator.");
+					return false;
+				}
+
 				if (!parseATDeclaration())
 					return false;
-				
+
+				if (!matchType(Kernel.TYPE_RBRACE))
+				{
+					addErrorMessage("Expected '}' after object reference.");
+					return false;
+				}
+
 				ArcheTextObject objectRef = currentRoot.get(currentObjectType, currentObjectName);
 				
 				if (objectRef == null)
