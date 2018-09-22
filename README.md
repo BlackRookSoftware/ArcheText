@@ -1,13 +1,25 @@
 # Black Rook ArcheText
 
-Copyright (c) 2016 Black Rook Software. All rights reserved.  
+Copyright (c) 2016-2018 Black Rook Software. All rights reserved.  
 [http://blackrooksoftware.com/projects.htm?name=archetext](http://blackrooksoftware.com/projects.htm?name=archetext)  
 [https://github.com/BlackRookSoftware/ArcheText](https://github.com/BlackRookSoftware/ArcheText)
 
+### Notice
+
+This library is currently in **EXPERIMENTAL** status. This library's API
+may change many times in different ways over the course of its development!
+
 ### Required Libraries
 
-Black Rook Commons 2.30.0+  
+Black Rook Commons 2.31.4+  
 [https://github.com/BlackRookSoftware/Common](https://github.com/BlackRookSoftware/Common)
+
+Black Rook Common Lang 2.9.1+  
+[https://github.com/BlackRookSoftware/CommonLang](https://github.com/BlackRookSoftware/CommonLang)
+
+### Required Java Modules
+
+[java.base](https://docs.oracle.com/javase/10/docs/api/java.base-summary.html)  
 
 ### Introduction
 
@@ -177,10 +189,10 @@ which affects how they are interpreted or converted.
 	<0, 0.2, 5.8, false>
 	<<0, 1, 3>, 7, [false, true, 6767]>
 	
-**Object** - A reference or anonymously-typed object. Formatted exactly like the body of a structure.
+**Object** - A reference or anonymously-typed object, formatted exactly like the body of a structure.
 
+	@{pair "y"}
 	{ x = 9; y = 5.6; z = [5, 6, 7] }
-	@pair "y"
 	
 
 #### Inheritance
@@ -317,6 +329,9 @@ Is equivalent to:
 
 ### Reflection and POJO Conversion	
 
+ArcheText objects can be applied to other Java objects via reflection. The conversion is implemented
+by Black Rook Common Reflect's TypeConverter, so all common conversions will work from ArcheText Values
+to Java-native ones, including enums!
 
 ### Library
 
@@ -326,6 +341,24 @@ package.
 
 The ArcheTextObject class is used for the manipulation of the data once it
 has been read into Java via ArcheTextReader. 
+
+### Compiling with Ant
+
+To download the dependencies for this project (if you didn't set that up yourself already), type:
+
+	ant dependencies
+
+A *build.properties* file will be created/appended to with the *dev.base* property set.
+	
+To compile this library with Apache Ant, type:
+
+	ant compile
+
+To make a JAR of this library, type:
+
+	ant jar
+
+And it will be placed in the *build/jar* directory.
 
 ### Other
 
