@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016-2018 Black Rook Software
+ * Copyright (c) 2016-2019 Black Rook Software
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser Public License v2.1
  * which accompanies this distribution, and is available at
@@ -21,13 +21,14 @@ import com.blackrook.archetext.exception.ArcheTextOperationException;
 import com.blackrook.archetext.exception.ArcheTextParseException;
 import com.blackrook.commons.AbstractSet;
 import com.blackrook.commons.AbstractVector;
-import com.blackrook.commons.Common;
 import com.blackrook.commons.hash.Hash;
 import com.blackrook.commons.hash.HashMap;
 import com.blackrook.commons.hash.HashedQueueMap;
 import com.blackrook.commons.linkedlist.Queue;
 import com.blackrook.commons.linkedlist.Stack;
 import com.blackrook.commons.list.List;
+import com.blackrook.commons.util.IOUtils;
+import com.blackrook.commons.util.OSUtils;
 import com.blackrook.lang.CommonLexer;
 import com.blackrook.lang.CommonLexerKernel;
 import com.blackrook.lang.Parser;
@@ -70,7 +71,7 @@ public final class ArcheTextReader
 		@Override
 		public String getIncludeResourceName(String streamName, String path) throws IOException
 		{
-			if (Common.isWindows() && streamName.contains("\\")) // check for Windows paths.
+			if (OSUtils.isWindows() && streamName.contains("\\")) // check for Windows paths.
 				streamName = streamName.replace('\\', '/');
 			
 			String streamParent = null;
@@ -102,7 +103,7 @@ public final class ArcheTextReader
 		public InputStream getIncludeResource(String path) throws IOException
 		{
 			if (path.startsWith(CLASSPATH_PREFIX))
-				return Common.openResource(path.substring(CLASSPATH_PREFIX.length()));
+				return IOUtils.openResource(path.substring(CLASSPATH_PREFIX.length()));
 			else
 				return new FileInputStream(new File(path));
 		}
@@ -234,7 +235,7 @@ public final class ArcheTextReader
 	 */
 	public static ArcheTextRoot readResource(String name) throws IOException
 	{
-		return read("classpath:"+name, Common.openResource(name), DEFAULT_INCLUDER);
+		return read("classpath:"+name, IOUtils.openResource(name), DEFAULT_INCLUDER);
 	}
 	
 	/**

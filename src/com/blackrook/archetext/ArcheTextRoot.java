@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016-2018 Black Rook Software
+ * Copyright (c) 2016-2019 Black Rook Software
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser Public License v2.1
  * which accompanies this distribution, and is available at
@@ -10,10 +10,10 @@ package com.blackrook.archetext;
 import java.lang.reflect.Array;
 import java.util.Iterator;
 
-import com.blackrook.commons.Common;
 import com.blackrook.commons.ObjectPair;
 import com.blackrook.commons.hash.HashMap;
 import com.blackrook.commons.list.List;
+import com.blackrook.commons.util.ObjectUtils;
 
 /**
  * The root of an ArcheText Hierarchy.
@@ -38,7 +38,7 @@ public class ArcheTextRoot
 		
 		boolean isEmpty()
 		{
-			return !containsDefault() && Common.isEmpty(nameSet);
+			return !containsDefault() && ObjectUtils.isEmpty(nameSet);
 		}
 		
 		/** Returns true if this contains a default object. */
@@ -50,7 +50,7 @@ public class ArcheTextRoot
 		/** Returns true if this contains a default object. Empty name is default. */
 		boolean contains(String name)
 		{
-			if (Common.isEmpty(name))
+			if (ObjectUtils.isEmpty(name))
 				return containsDefault();
 			else if (nameSet == null)
 				return false;
@@ -61,7 +61,7 @@ public class ArcheTextRoot
 		/** Adds an object. Empty name is default. */
 		void add(String name, ArcheTextObject object)
 		{
-			if (Common.isEmpty(name))
+			if (ObjectUtils.isEmpty(name))
 				defaultObject = object;
 			else
 			{
@@ -74,7 +74,7 @@ public class ArcheTextRoot
 		/** Removes an object and returns this reference. Empty name is default.*/
 		ArcheTextObject remove(String name)
 		{
-			if (Common.isEmpty(name))
+			if (ObjectUtils.isEmpty(name))
 			{
 				ArcheTextObject out = defaultObject;
 				defaultObject = null;
@@ -89,7 +89,7 @@ public class ArcheTextRoot
 		/** Removes an object and returns this reference. Empty name is default.*/
 		ArcheTextObject get(String name)
 		{
-			if (Common.isEmpty(name))
+			if (ObjectUtils.isEmpty(name))
 				return defaultObject;
 			else if (nameSet == null)
 				return null;
@@ -150,7 +150,7 @@ public class ArcheTextRoot
 	 */
 	public String[] getTypes()
 	{
-		if (Common.isEmpty(descendants))
+		if (ObjectUtils.isEmpty(descendants))
 			return NO_TYPES;
 		
 		String[] out = new String[descendants.size()];

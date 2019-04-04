@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016-2018 Black Rook Software
+ * Copyright (c) 2016-2019 Black Rook Software
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser Public License v2.1
  * which accompanies this distribution, and is available at
@@ -13,7 +13,6 @@ import java.util.Iterator;
 import com.blackrook.archetext.annotation.ATIgnore;
 import com.blackrook.archetext.annotation.ATName;
 import com.blackrook.commons.AbstractSet;
-import com.blackrook.commons.Common;
 import com.blackrook.commons.ObjectPair;
 import com.blackrook.commons.Reflect;
 import com.blackrook.commons.ResettableIterator;
@@ -23,6 +22,7 @@ import com.blackrook.commons.hash.Hash;
 import com.blackrook.commons.hash.HashMap;
 import com.blackrook.commons.linkedlist.Queue;
 import com.blackrook.commons.linkedlist.Stack;
+import com.blackrook.commons.util.ObjectUtils;
 
 /**
  * The object representation for all ArcheText objects and values.
@@ -81,7 +81,7 @@ public class ArcheTextObject
 	 */
 	public ArcheTextObject(String type, String name)
 	{
-		if (!Common.isEmpty(name) && Common.isEmpty(type))
+		if (!ObjectUtils.isEmpty(name) && ObjectUtils.isEmpty(type))
 			throw new IllegalArgumentException("type cannot be empty if the name is not empty.");
 		this.type = type;
 		this.name = name;

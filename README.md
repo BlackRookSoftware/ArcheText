@@ -1,6 +1,6 @@
 # Black Rook ArcheText
 
-Copyright (c) 2016-2018 Black Rook Software. All rights reserved.  
+Copyright (c) 2016-2019 Black Rook Software. All rights reserved.  
 [http://blackrooksoftware.com/projects.htm?name=archetext](http://blackrooksoftware.com/projects.htm?name=archetext)  
 [https://github.com/BlackRookSoftware/ArcheText](https://github.com/BlackRookSoftware/ArcheText)
 
@@ -11,10 +11,10 @@ may change many times in different ways over the course of its development!
 
 ### Required Libraries
 
-Black Rook Commons 2.31.4+  
+Black Rook Commons 2.32.0+  
 [https://github.com/BlackRookSoftware/Common](https://github.com/BlackRookSoftware/Common)
 
-Black Rook Common Lang 2.9.1+  
+Black Rook Common Lang 2.11.0+  
 [https://github.com/BlackRookSoftware/CommonLang](https://github.com/BlackRookSoftware/CommonLang)
 
 ### Required Java Modules
