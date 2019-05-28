@@ -250,7 +250,6 @@ public class ArcheTextLexer extends Lexer
 	@Override
 	protected char readChar() throws IOException
 	{
-		// FIXME: Not Working!
 		while (true)
 		{
 			char c = super.readChar();
@@ -267,30 +266,30 @@ public class ArcheTextLexer extends Lexer
 				return c;
 			}
 			
-			if (lineBeginning && c == '#')
+			if (c == '\n')
+			{
+				lineBeginning = true;
+				if (ifStack.isEmpty() || ifStack.peek())
+					return c;
+			}
+			else if (lineBeginning && c == '#')
 			{
 				lineBeginning = false;
 				preprocess();
 				return readChar();
 			}
-
-			if (lineBeginning && Character.isWhitespace(c))
+			else if (lineBeginning && Character.isWhitespace(c))
 			{
 				// keep lineBeginning
 				if (ifStack.isEmpty() || ifStack.peek())
 					return c;
 			}
-			
-			if (!lineBeginning && c == '\n')
+			else
 			{
-				lineBeginning = true;
+				lineBeginning = false;
 				if (ifStack.isEmpty() || ifStack.peek())
 					return c;
-			} 
-
-			lineBeginning = false;
-			if (ifStack.isEmpty() || ifStack.peek())
-				return c;
+			}
 		}
 	}
 	

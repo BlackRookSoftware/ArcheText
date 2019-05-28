@@ -1,4 +1,6 @@
-#define XSTUFF x = 6
+#define XSTUFF \
+	x = 6;\
+	y = 76
 
 pair TOKEN
 {
