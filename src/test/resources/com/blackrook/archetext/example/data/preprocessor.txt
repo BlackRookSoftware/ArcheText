@@ -1,0 +1,34 @@
+#define XSTUFF x = 6
+
+pair TOKEN
+{
+	XSTUFF;
+}
+
+#include "preprocessor2.txt"
+
+#ifndef XSTUFF
+
+pair "x"
+{
+	x = 0;
+	y = 9;
+}
+
+#else
+
+pair "y"
+{
+	x = 3;
+	y = 8;
+}
+
+#endif
+
+pair "z"
+{
+	x = 87;
+	y = -4;
+	z = 23;
+}
+
