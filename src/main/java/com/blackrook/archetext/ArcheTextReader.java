@@ -541,7 +541,6 @@ public final class ArcheTextReader
 					currentObject.flatten();
 
 				targetRoot.add(currentObject);
-				System.out.println("ADDED "+ currentObject);
 				currentObjectType = null;
 				currentObjectName = null;
 				return true;
