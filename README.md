@@ -231,15 +231,11 @@ structures:
 	triple "xunit"
 	{
 		x = 1;
-		y = 0;
-		z = 0;
 	}
 	
 	triple "yunit"
 	{
-		x = 0;
 		y = 1;
-		z = 0;
 	}
 
 You could make an ordered triple (x, y, z) of (1, 1, 1) by defining:
@@ -250,19 +246,6 @@ You could make an ordered triple (x, y, z) of (1, 1, 1) by defining:
 	}
 	
 Every field in a structure does not need to exist in order for inheritance to work.
-If *triple* structures *xunit* and *yunit* were defined as:
-
-	triple "xunit"
-	{
-		x = 1;
-	}
-	
-	triple "yunit"
-	{
-		y = 1;
-	}
-
-...the definition of *all ones* would still hold the same values. 
 
 Field value priority goes from first defined to last-defined in the inheritance 
 clauses (in this example, *all ones* (defined fields) is searched, then *yunit*, 
