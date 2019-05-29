@@ -15,12 +15,12 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 import com.blackrook.archetext.util.Lexer;
-import com.blackrook.archetext.util.Utils;
 
 /**
  * A lexer that scans for specific directives and affects the stream.
@@ -31,6 +31,7 @@ import com.blackrook.archetext.util.Utils;
  * <li><code>#ifdef MACRO</code> - Includes the next set of lines (until <code>#endif</code>) if the provided macro is defined.</li>
  * <li><code>#ifndef MACRO</code> - Includes the next set of lines (until <code>#endif</code>) if the provided macro is NOT defined.</li>
  * <li><code>#endif</code> - Ends an "if" directive block.</li>
+ * <li><code>#else</code> - Block that is used if an "if" block does not succeed.</li>
  * </ul>
  * @author Matthew Tropiano
  * @see Lexer
@@ -72,9 +73,15 @@ public class ArcheTextLexer extends Lexer
 	 * </li>
 	 * </ul> 
 	 */
-	public static class DefaultIncluder implements ArcheTextIncluder
+	public static class DefaultIncluder implements Includer
 	{
 		private static final String CLASSPATH_PREFIX = "classpath:";
+		private static final boolean IS_WINDOWS;
+		
+		static
+		{
+			IS_WINDOWS = System.getProperty("os.name").contains("Windows");
+		}
 		
 		// cannot be instantiated outside of this class.
 		private DefaultIncluder(){}
@@ -82,7 +89,7 @@ public class ArcheTextLexer extends Lexer
 		@Override
 		public String getIncludeResourcePath(String streamName, String path) throws IOException
 		{
-			if (Utils.isWindows() && streamName.contains("\\")) // check for Windows paths.
+			if (IS_WINDOWS && streamName.contains("\\")) // check for Windows paths.
 				streamName = streamName.replace('\\', '/');
 			
 			String streamParent = null;
@@ -114,9 +121,14 @@ public class ArcheTextLexer extends Lexer
 		public InputStream getIncludeResource(String path) throws IOException
 		{
 			if (path.startsWith(CLASSPATH_PREFIX))
-				return Utils.openResource(path.substring(CLASSPATH_PREFIX.length()));
+				return openResource(path.substring(CLASSPATH_PREFIX.length()));
 			else
 				return new FileInputStream(new File(path));
+		}
+
+		private static InputStream openResource(String pathString)
+		{
+			return Thread.currentThread().getContextClassLoader().getResourceAsStream(pathString);
 		}
 		
 	};
@@ -128,6 +140,31 @@ public class ArcheTextLexer extends Lexer
 		String get();
 	}
 
+	/**
+	 * An interface that allows the user to resolve a resource by path when the
+	 * PreprocessorLexer parses it.
+	 */
+	public interface Includer
+	{
+		/**
+		 * Returns a full path for a path when the parser needs a resource.
+		 * @param streamName the current name of the stream. This includer may use this to
+		 * 		procure a relative path.
+		 * @param path the stream path from the include directive.
+		 * @return the path to a possible resource, or null if no possible path is available.
+		 */
+		public String getIncludeResourcePath(String streamName, String path) throws IOException;
+	
+		/**
+		 * Returns an open {@link InputStream} for a path when the parser needs a resource.
+		 * By default, this attempts to open a file at the provided path.
+		 * @param path the resolved stream path from the include directive.
+		 * @return an open {@link InputStream} for the requested resource, or null if not found.
+		 */
+		public InputStream getIncludeResource(String path) throws IOException;
+	
+	}
+
 	/** Is this at the beginning of a line? */
 	private boolean lineBeginning;
 	/** Map for define token to macro string. */
@@ -135,7 +172,7 @@ public class ArcheTextLexer extends Lexer
 	/** Latest IF clause result. */
 	private Deque<Boolean> ifStack;
 	/** Includer that defines how to find a file. */
-	private ArcheTextIncluder includer;
+	private Includer includer;
 
 	/** List of errors. */
 	private List<String> errors;
@@ -192,9 +229,8 @@ public class ArcheTextLexer extends Lexer
 	/**
 	 * Sets the primary includer to use for resolving included streams.
 	 * @param includer the includer to use.
-	 * @see ArcheTextIncluder
 	 */
-	public void setIncluder(ArcheTextIncluder includer)
+	public void setIncluder(Includer includer)
 	{
 		if (includer == null)
 			throw new IllegalArgumentException("includer can not be null"); 
@@ -237,12 +273,15 @@ public class ArcheTextLexer extends Lexer
 	    return token;
 	}
 	
-	protected String getInfoLine(String streamName, int lineNumber, String message)
+	protected String getInfoLine(String streamName, int lineNumber, String token, String message)
 	{
 		StringBuilder sb = new StringBuilder();
 		if (streamName != null)
-			sb.append("(").append(streamName).append("): ");
-		sb.append("Line ").append(lineNumber).append(": ");
+			sb.append("(").append(streamName).append(") ");
+		sb.append("Line ").append(lineNumber);
+		if (token != null)
+			sb.append(", Token \"").append(token).append("\"");
+		sb.append(": ");
 		sb.append(message);
 		return sb.toString();
 	}
@@ -366,6 +405,18 @@ public class ArcheTextLexer extends Lexer
 		}
 		
 		processDirectiveLine(streamName, lineNumber, sb.toString());
+		if (!errors.isEmpty()) 
+		{
+			StringBuilder msg = new StringBuilder();
+			Iterator<String> it = errors.iterator();
+			while (it.hasNext())
+			{
+				msg.append(it.next());
+				if (it.hasNext())
+					msg.append('\n');
+			}
+			throw new PreprocessorException(msg.toString());
+		}
 	}
 	
 	/**
@@ -388,7 +439,7 @@ public class ArcheTextLexer extends Lexer
 		if (directiveName.equalsIgnoreCase(DIRECTIVE_ENDIF))
 		{
 			if (ifStack.isEmpty())
-				errors.add(getInfoLine(streamName, lineNumber, "#endif encountered without an #if"));
+				errors.add(getInfoLine(streamName, lineNumber, directiveName, "#endif encountered without an #if"));
 			else
 				ifStack.poll();
 		}
@@ -396,7 +447,7 @@ public class ArcheTextLexer extends Lexer
 		else if (directiveName.equalsIgnoreCase(DIRECTIVE_ELSE))
 		{
 			if (ifStack.isEmpty())
-				errors.add(getInfoLine(streamName, lineNumber, "#else encountered without an #if"));
+				errors.add(getInfoLine(streamName, lineNumber, directiveName, "#else encountered without an #if"));
 			else
 				ifStack.push(!ifStack.poll());
 		}
@@ -410,15 +461,15 @@ public class ArcheTextLexer extends Lexer
 			try {
 				includePath = includer.getIncludeResourcePath(streamName, path);
 				if (includePath == null)
-					errors.add(getInfoLine(streamName, lineNumber, "Could not resolve path: \"" + path + "\""));
+					errors.add(getInfoLine(streamName, lineNumber, null, "Could not resolve path: \"" + path + "\""));
 				includeIn = includer.getIncludeResource(includePath);
 				if (includeIn == null)
-					errors.add(getInfoLine(streamName, lineNumber, "Could not resolve path: \"" + includePath + "\""));
+					errors.add(getInfoLine(streamName, lineNumber, null, "Could not resolve path: \"" + includePath + "\""));
 
 				pushStream(includePath, new InputStreamReader(includeIn));
 				
 			} catch (IOException e) {
-				errors.add(getInfoLine(streamName, lineNumber, "Could not resolve path. "+ e.getMessage()));
+				errors.add(getInfoLine(streamName, lineNumber, null, "Could not resolve path. "+ e.getMessage()));
 			}
 		}
 		// #Define
@@ -427,9 +478,9 @@ public class ArcheTextLexer extends Lexer
 			String defineToken = parser.scanNext(directiveLine);
 			
 			if (defineToken == null)
-				errors.add(getInfoLine(streamName, lineNumber, "Expected macro identifier after #define"));
+				errors.add(getInfoLine(streamName, lineNumber, null, "Expected macro identifier after #define"));
 			else if (parser.state == DirectiveParser.STATE_STRING)
-				errors.add(getInfoLine(streamName, lineNumber, "Expected identifier type token after #define, not string."));
+				errors.add(getInfoLine(streamName, lineNumber, null, "Expected identifier type token after #define, not string."));
 
 			String data = parser.getRest(directiveLine).trim();
 			
@@ -441,9 +492,9 @@ public class ArcheTextLexer extends Lexer
 			String defineToken = parser.scanNext(directiveLine);
 			
 			if (defineToken == null)
-				errors.add(getInfoLine(streamName, lineNumber, "Expected macro identifier after #define"));
+				errors.add(getInfoLine(streamName, lineNumber, defineToken, "Expected macro identifier after #define"));
 			else if (parser.state == DirectiveParser.STATE_STRING)
-				errors.add(getInfoLine(streamName, lineNumber, "Expected identifier type token after #define, not string."));
+				errors.add(getInfoLine(streamName, lineNumber, defineToken, "Expected identifier type token after #define, not string."));
 			
 			macroMap.remove(defineToken.toLowerCase());
 		}
@@ -453,9 +504,9 @@ public class ArcheTextLexer extends Lexer
 			String defineToken = parser.scanNext(directiveLine);
 			
 			if (defineToken == null)
-				errors.add(getInfoLine(streamName, lineNumber, "Expected macro identifier after #define"));
+				errors.add(getInfoLine(streamName, lineNumber, defineToken, "Expected macro identifier after #define"));
 			else if (parser.state == DirectiveParser.STATE_STRING)
-				errors.add(getInfoLine(streamName, lineNumber, "Expected identifier type token after #define, not string."));
+				errors.add(getInfoLine(streamName, lineNumber, defineToken, "Expected identifier type token after #define, not string."));
 
 			ifStack.push(macroMap.containsKey(defineToken.toLowerCase()));
 		}
@@ -465,15 +516,15 @@ public class ArcheTextLexer extends Lexer
 			String defineToken = parser.scanNext(directiveLine);
 			
 			if (defineToken == null)
-				errors.add(getInfoLine(streamName, lineNumber, "Expected macro identifier after #define"));
+				errors.add(getInfoLine(streamName, lineNumber, defineToken, "Expected macro identifier after #define"));
 			else if (parser.state == DirectiveParser.STATE_STRING)
-				errors.add(getInfoLine(streamName, lineNumber, "Expected identifier type token after #define, not string."));
+				errors.add(getInfoLine(streamName, lineNumber, defineToken, "Expected identifier type token after #define, not string."));
 
 			ifStack.push(!macroMap.containsKey(defineToken.toLowerCase()));
 		}
 		else
 		{
-			errors.add(getInfoLine(streamName, lineNumber, "Not a valid directive: "+directiveName));
+			errors.add(getInfoLine(streamName, lineNumber, directiveName, "Not a valid directive: "+directiveName));
 		}
 	}
 	
@@ -646,6 +697,17 @@ public class ArcheTextLexer extends Lexer
 		
 	}
 	
-	
-	
+	/**
+	 * Thrown on preprocessor error. 
+	 */
+	public static class PreprocessorException extends RuntimeException
+	{
+		private static final long serialVersionUID = -1574421632209457335L;
+
+		private PreprocessorException(String message)
+		{
+			super(message);
+		}
+	}
+		
 }

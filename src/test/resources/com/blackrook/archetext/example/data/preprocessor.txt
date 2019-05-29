@@ -2,6 +2,12 @@
 	x = 6;\
 	y = 76
 
+#!/usr/asdf
+
+.triple(x,y,z)
+
+triple "stuff" (2,3,4)
+
 pair TOKEN
 {
 	XSTUFF;
@@ -34,3 +40,29 @@ pair "z"
 	z = 23;
 }
 
+
+#define JUNKOLA
+
+#ifdef JUNKOLA
+
+pair "aa"
+{
+	a = 3;
+	b = 3;
+	c = 3;
+}
+
+#endif
+
+#undefine JUNKOLA
+
+#ifdef JUNKOLA
+
+pair "bb"
+{
+	a = 5;
+	b = 6;
+	c = 7;
+}
+
+#endif

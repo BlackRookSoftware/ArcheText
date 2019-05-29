@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
+import com.blackrook.archetext.ArcheTextLexer.Includer;
 import com.blackrook.archetext.ArcheTextValue.Type;
 import com.blackrook.archetext.exception.ArcheTextOperationException;
 import com.blackrook.archetext.exception.ArcheTextParseException;
@@ -109,7 +110,7 @@ public final class ArcheTextReader
 	 * @throws IOException if the stream can't be read.
 	 * @throws NullPointerException if f is null. 
 	 */
-	public static ArcheTextRoot read(File file, ArcheTextIncluder includer) throws IOException
+	public static ArcheTextRoot read(File file, Includer includer) throws IOException
 	{
 		return read(file.getPath(), new FileInputStream(file), includer);
 	}
@@ -123,7 +124,7 @@ public final class ArcheTextReader
 	 * @throws IOException if the stream can't be read.
 	 * @throws NullPointerException if f is null. 
 	 */
-	public static ArcheTextRoot read(String text, ArcheTextIncluder includer) throws IOException
+	public static ArcheTextRoot read(String text, Includer includer) throws IOException
 	{
 		return read(STREAMNAME_TEXT, new StringReader(text), includer);
 	}
@@ -138,7 +139,7 @@ public final class ArcheTextReader
 	 * @throws IOException if the stream can't be read.
 	 * @throws NullPointerException if in is null. 
 	 */
-	public static ArcheTextRoot read(String streamName, InputStream in, ArcheTextIncluder includer) throws IOException
+	public static ArcheTextRoot read(String streamName, InputStream in, Includer includer) throws IOException
 	{
 		return read(streamName, new InputStreamReader(in), includer);
 	}
@@ -153,7 +154,7 @@ public final class ArcheTextReader
 	 * @throws IOException if the stream can't be read.
 	 * @throws NullPointerException if f is null. 
 	 */
-	public static ArcheTextRoot read(String streamName, Reader reader, ArcheTextIncluder includer) throws IOException
+	public static ArcheTextRoot read(String streamName, Reader reader, Includer includer) throws IOException
 	{
 		ArcheTextRoot out = new ArcheTextRoot();
 		apply(streamName, reader, includer, out);
@@ -226,7 +227,7 @@ public final class ArcheTextReader
 	 * @param root the root to apply the objects to.
 	 * @throws NullPointerException	if either object is null. 
 	 */
-	public static void apply(File f, ArcheTextIncluder includer, ArcheTextRoot root) throws IOException
+	public static void apply(File f, Includer includer, ArcheTextRoot root) throws IOException
 	{
 		apply(f.getPath(), new FileInputStream(f), includer, root);
 	}
@@ -239,7 +240,7 @@ public final class ArcheTextReader
 	 * @param root the root to apply the objects to.
 	 * @throws NullPointerException	if either object is null. 
 	 */
-	public static void apply(String streamName, InputStream in, ArcheTextIncluder includer, ArcheTextRoot root)
+	public static void apply(String streamName, InputStream in, Includer includer, ArcheTextRoot root)
 	{
 		apply(streamName, new InputStreamReader(in), includer, root);
 	}
@@ -251,7 +252,7 @@ public final class ArcheTextReader
 	 * @param root the root to apply the objects to.
 	 * @throws NullPointerException	if either object is null. 
 	 */
-	public static void apply(String text, ArcheTextIncluder includer, ArcheTextRoot root) throws IOException
+	public static void apply(String text, Includer includer, ArcheTextRoot root) throws IOException
 	{
 		apply(STREAMNAME_TEXT, new StringReader(text), includer, root);
 	}
@@ -264,7 +265,7 @@ public final class ArcheTextReader
 	 * @param root the root to apply the objects to.
 	 * @throws NullPointerException	if either object is null. 
 	 */
-	public static void apply(String streamName, Reader reader, ArcheTextIncluder includer, ArcheTextRoot root)
+	public static void apply(String streamName, Reader reader, Includer includer, ArcheTextRoot root)
 	{
 		ArcheTextLexer lexer = new ArcheTextLexer(KERNEL_INSTANCE, streamName, reader);
 		lexer.setIncluder(includer);
