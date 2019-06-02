@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE project>
 <!-- ====================================================================== 
-     Black Rook Redis Build File    
+     Black Rook ArcheText Build File    
      Matt Tropiano                                                                
      ====================================================================== -->
 <project name="build" default="compile">
 
-	<description>Black Rook Redis</description>
+	<description>Black Rook ArcheText</description>
 
 	<property file="build.properties" />
 
@@ -17,21 +17,16 @@
 	<!-- Project Libs -->
 	
 	<!-- Project Info -->
-	<property name="project.archive" value="blackrook-redis" />
-	<property name="project.javadoc.title" value="Black Rook Redis" />
+	<property name="project.archive" value="blackrook-archetext" />
+	<property name="project.javadoc.title" value="Black Rook Archetext" />
 	<property name="project.classpath" value=""/>
 	<property name="project.testclass" value=""/>
 	<property name="project.testclass.main" value=""/>
 	<property name="project.javadoc.packages" value="
-		com.blackrook.redis,
-		com.blackrook.redis.commands,
-		com.blackrook.redis.data,
-		com.blackrook.redis.enums,
-		com.blackrook.redis.event,
-		com.blackrook.redis.exception,
-		com.blackrook.redis.hints,
-		com.blackrook.redis.io,
-		com.blackrook.redis.util
+		com.blackrook.archetext,
+		com.blackrook.archetext.annotation,
+		com.blackrook.archetext.exception,
+		com.blackrook.archetext.util
 		"
 	/>
 	
