@@ -24,6 +24,12 @@ contains utilities to convert them to POJOs and back.
 This project was designed to replace [DL](https://github.com/BlackRookSoftware/DL). Unlike DL, ArcheText maintains 
 definition hierarchy and supports value expressions.
 
+### Why?
+
+JSON and XML are okay for laying out hierarchical data, but not when that data can be
+similar to other data or if that data is redundant. ArcheText seeks to eliminate this,
+as well as providing a means to de-serialize that data into Java Objects.  
+
 ### Structure
 
 ArcheText's Structure is similar to most curly-brace language structures,
