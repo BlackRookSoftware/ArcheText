@@ -1,11 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2016-2019 Black Rook Software
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the GNU Lesser Public License v2.1
- * which accompanies this distribution, and is available at
- * http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
+ * Copyright (c) 2019 Black Rook Software
+ * 
+ * This program and the accompanying materials are made available under 
+ * the terms of the MIT License, which accompanies this distribution.
  ******************************************************************************/
-package com.blackrook.archetext;
+package com.blackrook.archetext.util;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -21,8 +20,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import com.blackrook.archetext.util.Lexer;
-
 /**
  * A lexer that scans for specific directives and affects the stream.
  * <ul>
@@ -37,7 +34,7 @@ import com.blackrook.archetext.util.Lexer;
  * @author Matthew Tropiano
  * @see Lexer
  */
-public class ArcheTextLexer extends Lexer
+public class PreprocessorLexer extends Lexer
 {
 	/** Preprocessor directive - Bang. */
 	public static final String DIRECTIVE_BANG = "!";
@@ -153,16 +150,18 @@ public class ArcheTextLexer extends Lexer
 		 * 		procure a relative path.
 		 * @param path the stream path from the include directive.
 		 * @return the path to a possible resource, or null if no possible path is available.
+		 * @throws IOException if an error occurs procuring a potential stream.
 		 */
-		public String getIncludeResourcePath(String streamName, String path) throws IOException;
+		String getIncludeResourcePath(String streamName, String path) throws IOException;
 	
 		/**
 		 * Returns an open {@link InputStream} for a path when the parser needs a resource.
 		 * By default, this attempts to open a file at the provided path.
 		 * @param path the resolved stream path from the include directive.
 		 * @return an open {@link InputStream} for the requested resource, or null if not found.
+		 * @throws IOException if an error occurs opening a stream.
 		 */
-		public InputStream getIncludeResource(String path) throws IOException;
+		InputStream getIncludeResource(String path) throws IOException;
 	
 	}
 
@@ -184,7 +183,7 @@ public class ArcheTextLexer extends Lexer
 	 * @param kernel the lexer kernel to use for defining how to parse the input text.
 	 * @param in the string to read from.
 	 */
-	public ArcheTextLexer(Kernel kernel, String in)
+	public PreprocessorLexer(Kernel kernel, String in)
 	{
 		this(kernel, null, in);
 	}
@@ -195,7 +194,7 @@ public class ArcheTextLexer extends Lexer
 	 * @param name the name of this lexer.
 	 * @param in the reader to read from.
 	 */
-	public ArcheTextLexer(Kernel kernel, String name, String in)
+	public PreprocessorLexer(Kernel kernel, String name, String in)
 	{
 		this(kernel, name, new StringReader(in));
 	}
@@ -206,7 +205,7 @@ public class ArcheTextLexer extends Lexer
 	 * @param kernel the kernel to use for this lexer.
 	 * @param in the reader to read from.
 	 */
-	public ArcheTextLexer(Kernel kernel, Reader in)
+	public PreprocessorLexer(Kernel kernel, Reader in)
 	{
 		this(kernel, null, in);
 	}
@@ -217,7 +216,7 @@ public class ArcheTextLexer extends Lexer
 	 * @param name the name of this lexer.
 	 * @param in the reader to read from.
 	 */
-	public ArcheTextLexer(Kernel kernel, String name, Reader in)
+	public PreprocessorLexer(Kernel kernel, String name, Reader in)
 	{
 		super(kernel, name, in);
 		this.lineBeginning = true;
@@ -380,7 +379,10 @@ public class ArcheTextLexer extends Lexer
 					else if (c == END_OF_STREAM)
 						breakloop = true;
 					else if (c == '\n')
+					{
+						lineBeginning = true;
 						breakloop = true;
+					}
 					else if (c == '\\')
 						state = STATE_ESCAPE;
 					else
@@ -422,6 +424,7 @@ public class ArcheTextLexer extends Lexer
 	
 	/**
 	 * Called when a full directive is read and needs to be processed.
+	 * @param streamName the stream name.
 	 * @param lineNumber the line number.
 	 * @param directiveLine the directive line to process.
 	 */
@@ -548,10 +551,10 @@ public class ArcheTextLexer extends Lexer
 			state = STATE_START;
 		}
 		
-		char getChar(String line)
+		int getChar(String line)
 		{
 			if (index >= line.length())
-				return (char)65535;
+				return -1;
 			return line.charAt(index++);
 		}
 		
@@ -564,9 +567,10 @@ public class ArcheTextLexer extends Lexer
 		{
 			reset();
 			boolean breakloop = false;
-			while (!breakloop)
+			int x;
+			while (!breakloop && (x = getChar(line)) > -1)
 			{
-				char c = getChar(line);
+				char c = (char)x;
 				switch (state)
 				{
 					case DirectiveParser.STATE_START:
@@ -641,7 +645,11 @@ public class ArcheTextLexer extends Lexer
 								StringBuilder sb = new StringBuilder();
 								for (int i = 0; i < 4; i++)
 								{
-									c = getChar(line);
+									x = getChar(line);
+									if (x < 0)
+										break;
+									
+									c = (char)x;
 									if (!isHexDigit(c))
 									{
 										tokenBuilder.append("\\u").append(sb);
@@ -663,8 +671,12 @@ public class ArcheTextLexer extends Lexer
 								StringBuilder sb = new StringBuilder();
 								for (int i = 0; i < 2; i++)
 								{
-									c = getChar(line);
-									if (!isHexDigit(c))
+									x = getChar(line);
+									if (x < 0)
+										break;
+									
+									c = (char)x;
+									if (!isHexDigit((char)c))
 									{
 										tokenBuilder.append("\\x").append(sb);
 										tokenBuilder.delete(0, tokenBuilder.length());

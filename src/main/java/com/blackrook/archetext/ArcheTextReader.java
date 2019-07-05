@@ -24,13 +24,14 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
-import com.blackrook.archetext.ArcheTextLexer.Includer;
 import com.blackrook.archetext.ArcheTextValue.Type;
 import com.blackrook.archetext.exception.ArcheTextOperationException;
 import com.blackrook.archetext.exception.ArcheTextParseException;
 import com.blackrook.archetext.util.HashDequeMap;
 import com.blackrook.archetext.util.Lexer;
 import com.blackrook.archetext.util.Lexer.Parser;
+import com.blackrook.archetext.util.PreprocessorLexer;
+import com.blackrook.archetext.util.PreprocessorLexer.Includer;
 import com.blackrook.archetext.util.Utils;
 
 /**
@@ -98,7 +99,7 @@ public final class ArcheTextReader
 	 */
 	public static ArcheTextRoot read(String streamName, Reader reader) throws IOException
 	{
-		return read(streamName, reader, ArcheTextLexer.DEFAULT_INCLUDER);
+		return read(streamName, reader, PreprocessorLexer.DEFAULT_INCLUDER);
 	}
 
 	/**
@@ -171,7 +172,7 @@ public final class ArcheTextReader
 	 */
 	public static ArcheTextRoot readResource(String name) throws IOException
 	{
-		return read("classpath:"+name, Utils.openResource(name), ArcheTextLexer.DEFAULT_INCLUDER);
+		return read("classpath:"+name, Utils.openResource(name), PreprocessorLexer.DEFAULT_INCLUDER);
 	}
 	
 	/**
@@ -217,7 +218,7 @@ public final class ArcheTextReader
 	 */
 	public static void apply(String streamName, Reader reader, ArcheTextRoot root)
 	{
-		apply(streamName, reader, ArcheTextLexer.DEFAULT_INCLUDER, root);
+		apply(streamName, reader, PreprocessorLexer.DEFAULT_INCLUDER, root);
 	}
 		
 	/**
@@ -267,7 +268,7 @@ public final class ArcheTextReader
 	 */
 	public static void apply(String streamName, Reader reader, Includer includer, ArcheTextRoot root)
 	{
-		ArcheTextLexer lexer = new ArcheTextLexer(KERNEL_INSTANCE, streamName, reader);
+		PreprocessorLexer lexer = new PreprocessorLexer(KERNEL_INSTANCE, streamName, reader);
 		lexer.setIncluder(includer);
 		ATParser parser = new ATParser(lexer);
 		parser.readObjects(root);
@@ -445,7 +446,7 @@ public final class ArcheTextReader
 		/** List of errors. */
 		private LinkedList<String> errors;
 		
-		private ATParser(ArcheTextLexer lexer)
+		private ATParser(PreprocessorLexer lexer)
 		{
 			super(lexer);
 			this.errors = new LinkedList<>();
