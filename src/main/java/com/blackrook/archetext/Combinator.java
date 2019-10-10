@@ -13,7 +13,7 @@ import java.util.Set;
 
 import com.blackrook.archetext.ArcheTextValue.Type;
 import com.blackrook.archetext.exception.ArcheTextOperationException;
-import com.blackrook.archetext.util.Utils;
+import com.blackrook.archetext.struct.Utils;
 
 /**
  * ArcheText object internal accumulation types.

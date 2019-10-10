@@ -4,7 +4,7 @@
  * This program and the accompanying materials are made available under 
  * the terms of the MIT License, which accompanies this distribution.
  ******************************************************************************/
-package com.blackrook.archetext.util;
+package com.blackrook.archetext.struct;
 
 import java.io.InputStream;
 import java.lang.reflect.Array;
@@ -22,9 +22,9 @@ import com.blackrook.archetext.ArcheTextObject;
 import com.blackrook.archetext.annotation.ATIgnore;
 import com.blackrook.archetext.annotation.ATName;
 import com.blackrook.archetext.exception.ArcheTextExportException;
-import com.blackrook.archetext.util.TypeProfileFactory.Profile;
-import com.blackrook.archetext.util.TypeProfileFactory.Profile.FieldInfo;
-import com.blackrook.archetext.util.TypeProfileFactory.Profile.MethodInfo;
+import com.blackrook.archetext.struct.TypeProfileFactory.Profile;
+import com.blackrook.archetext.struct.TypeProfileFactory.Profile.FieldInfo;
+import com.blackrook.archetext.struct.TypeProfileFactory.Profile.MethodInfo;
 
 public final class Utils
 {

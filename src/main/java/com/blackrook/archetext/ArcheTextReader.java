@@ -27,12 +27,12 @@ import java.util.Set;
 import com.blackrook.archetext.ArcheTextValue.Type;
 import com.blackrook.archetext.exception.ArcheTextOperationException;
 import com.blackrook.archetext.exception.ArcheTextParseException;
-import com.blackrook.archetext.util.HashDequeMap;
-import com.blackrook.archetext.util.Lexer;
-import com.blackrook.archetext.util.Lexer.Parser;
-import com.blackrook.archetext.util.PreprocessorLexer;
-import com.blackrook.archetext.util.PreprocessorLexer.Includer;
-import com.blackrook.archetext.util.Utils;
+import com.blackrook.archetext.struct.HashDequeMap;
+import com.blackrook.archetext.struct.Lexer;
+import com.blackrook.archetext.struct.PreprocessorLexer;
+import com.blackrook.archetext.struct.Utils;
+import com.blackrook.archetext.struct.Lexer.Parser;
+import com.blackrook.archetext.struct.PreprocessorLexer.Includer;
 
 /**
  * A reader class for reading in ArcheText data and creating objects from it.

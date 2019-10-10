@@ -7,7 +7,7 @@
  ******************************************************************************/
 package com.blackrook.archetext;
 
-import com.blackrook.archetext.util.Utils;
+import com.blackrook.archetext.struct.Utils;
 
 /**
  * Factory class for generating {@link ArcheTextObject}s.

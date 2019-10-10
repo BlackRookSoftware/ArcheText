@@ -4,7 +4,7 @@
  * This program and the accompanying materials are made available under 
  * the terms of the MIT License, which accompanies this distribution.
  ******************************************************************************/
-package com.blackrook.archetext.util;
+package com.blackrook.archetext.struct;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
@@ -17,7 +17,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import com.blackrook.archetext.util.TypeProfileFactory.Profile;
+import com.blackrook.archetext.struct.TypeProfileFactory.Profile;
 
 /**
  * Type converter class for converting types to others.

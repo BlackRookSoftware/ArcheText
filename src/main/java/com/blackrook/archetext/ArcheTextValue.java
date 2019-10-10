@@ -16,7 +16,7 @@ import java.util.Set;
 
 import com.blackrook.archetext.exception.ArcheTextConversionException;
 import com.blackrook.archetext.exception.ArcheTextOperationException;
-import com.blackrook.archetext.util.Utils;
+import com.blackrook.archetext.struct.Utils;
 
 /**
  * The values stored in an {@link ArcheTextObject}.

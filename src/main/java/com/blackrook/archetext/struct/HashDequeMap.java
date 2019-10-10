@@ -4,7 +4,7 @@
  * This program and the accompanying materials are made available under 
  * the terms of the MIT License, which accompanies this distribution.
  ******************************************************************************/
-package com.blackrook.archetext.util;
+package com.blackrook.archetext.struct;
 
 import java.util.Collection;
 import java.util.Deque;

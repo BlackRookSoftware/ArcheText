@@ -14,7 +14,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import com.blackrook.archetext.util.Utils;
+import com.blackrook.archetext.struct.Utils;
 
 /**
  * The root of an ArcheText Hierarchy.

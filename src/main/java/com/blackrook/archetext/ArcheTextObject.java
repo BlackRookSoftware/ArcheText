@@ -16,7 +16,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.Stack;
 
-import com.blackrook.archetext.util.Utils;
+import com.blackrook.archetext.struct.Utils;
 
 /**
  * The object representation for all ArcheText objects and values.
