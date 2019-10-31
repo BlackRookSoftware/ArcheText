@@ -18,7 +18,9 @@ public final class ArcheTextFactory
 	/**
 	 * Creates a new anonymous ArcheTextObject using a POJO (Plain Ol' Java Object) or Map type.
 	 * Primitives, boxed primitives, Sets, and Arrays are not acceptable.
+	 * @param <T> the input object type.
 	 * @param value the object value to convert.
+	 * @return a new ArcheText object that represents the input object.
 	 * @throws IllegalArgumentException if value is not a POJO nor map.
 	 */
 	public static <T> ArcheTextObject create(T value)
@@ -30,8 +32,10 @@ public final class ArcheTextFactory
 	/**
 	 * Creates a new default ArcheTextObject using a POJO (Plain Ol' Java Object) or Map type.
 	 * Primitives, boxed primitives, Sets, and Arrays are not acceptable.
+	 * @param <T> the input object type.
 	 * @param type the object type.
 	 * @param value the object value to convert.
+	 * @return a new ArcheText object that represents the input object.
 	 * @throws IllegalArgumentException if value is not a POJO nor map.
 	 */
 	public static <T> ArcheTextObject create(String type, T value)
@@ -42,9 +46,11 @@ public final class ArcheTextFactory
 	/**
 	 * Creates a new ArcheTextObject using a POJO (Plain Ol' Java Object) or Map type.
 	 * Primitives, boxed primitives, Sets, and Arrays are not acceptable.
+	 * @param <T> the input object type.
 	 * @param type the object type.
 	 * @param name the object name.
 	 * @param value the object value to convert.
+	 * @return a new ArcheText object that represents the input object.
 	 * @throws IllegalArgumentException if value is not a POJO nor map.
 	 */
 	public static <T> ArcheTextObject create(String type, String name, T value)

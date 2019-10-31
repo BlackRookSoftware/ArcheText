@@ -546,7 +546,10 @@ public final class Utils
 	}
 
 	/**
-	 * Get name for object.
+	 * Get identity name for object.
+	 * @param object the object to inspect.
+	 * @param <T> the object type.
+	 * @return the identity of the object to use for the ArcheText object.
 	 */
 	public static <T> String getIdentityFromObject(T object)
 	{

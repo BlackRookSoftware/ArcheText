@@ -827,7 +827,7 @@ public enum Combinator
 		this.assignmentOperator = assignmentOperator;
 	}
 	
-	/** Returns the assignment operator for this combinator. */
+	/** @return the assignment operator for this combinator. */
 	public String getAssignmentOperator()
 	{
 		return assignmentOperator;

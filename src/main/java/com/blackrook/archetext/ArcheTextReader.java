@@ -179,6 +179,7 @@ public final class ArcheTextReader
 	 * Applies the ArcheText objects read to an already existing root.
 	 * @param f	the file to read from.
 	 * @param root the root to apply the objects to.
+	 * @throws IOException if an I/O error occurs during read.
 	 * @throws NullPointerException	if either object is null. 
 	 */
 	public static void apply(File f, ArcheTextRoot root) throws IOException
@@ -190,6 +191,7 @@ public final class ArcheTextReader
 	 * Applies the ArcheText objects read to an already existing root.
 	 * @param text the String to read from.
 	 * @param root the root to apply the objects to.
+	 * @throws IOException if an I/O error occurs during read.
 	 * @throws NullPointerException	if either object is null. 
 	 */
 	public static void apply(String text, ArcheTextRoot root) throws IOException
@@ -226,6 +228,7 @@ public final class ArcheTextReader
 	 * @param f	the file to read from.
 	 * @param includer the includer to use to resolve "included" paths.
 	 * @param root the root to apply the objects to.
+	 * @throws IOException if an I/O error occurs during read.
 	 * @throws NullPointerException	if either object is null. 
 	 */
 	public static void apply(File f, Includer includer, ArcheTextRoot root) throws IOException
@@ -251,6 +254,7 @@ public final class ArcheTextReader
 	 * @param text the String to read from.
 	 * @param includer the includer to use to resolve "included" paths.
 	 * @param root the root to apply the objects to.
+	 * @throws IOException if an I/O error occurs during read.
 	 * @throws NullPointerException	if either object is null. 
 	 */
 	public static void apply(String text, Includer includer, ArcheTextRoot root) throws IOException

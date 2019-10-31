@@ -210,8 +210,9 @@ public class TypeProfileFactory
 	 * Type profile for an unknown object that has an ambiguous signature for 
 	 * applying values to POJOs and beans.
 	 * This only cares about setter methods with one argument and public fields.
+	 * @param <T> the encapsulated type
 	 */
-	public static class Profile<T extends Object>
+	public static class Profile<T>
 	{
 		/** Field for getting type identity. */
 		private FieldInfo identityField;

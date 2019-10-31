@@ -64,6 +64,7 @@ public class ArcheTextObject
 
 	/**
 	 * Creates a new default ArcheTextObject with a type.
+	 * @param type the object type name.
 	 */
 	public ArcheTextObject(String type)
 	{
@@ -71,18 +72,20 @@ public class ArcheTextObject
 	}
 
 	/**
-	 * Creates a new ArcheTextObject with a type and name.
+	 * Creates a new ArcheTextObject with a type and identity.
+	 * @param type the object type name.
+	 * @param identity the object's identity.
 	 */
-	public ArcheTextObject(String type, String name)
+	public ArcheTextObject(String type, String identity)
 	{
-		if (!Utils.isEmpty(name) && Utils.isEmpty(type))
+		if (!Utils.isEmpty(identity) && Utils.isEmpty(type))
 			throw new IllegalArgumentException("type cannot be empty if the name is not empty.");
 		this.type = type;
-		this.identity = name;
+		this.identity = identity;
 	}
 	
 	/**
-	 * Returns the type name of this object.
+	 * @return the type name of this object.
 	 */
 	public String getType()
 	{
@@ -90,7 +93,7 @@ public class ArcheTextObject
 	}
 
 	/**
-	 * Returns the identity of this object.
+	 * @return the identity of this object.
 	 */
 	public String getIdentity()
 	{
@@ -98,7 +101,7 @@ public class ArcheTextObject
 	}
 
 	/**
-	 * Returns the object's parents, in order of precedence.
+	 * @return an Iterable of the object's parents, in order of precedence.
 	 */
 	public Iterable<ArcheTextObject> getParents()
 	{
@@ -106,7 +109,7 @@ public class ArcheTextObject
 	}
 
 	/**
-	 * Returns true if this object has no type nor name.
+	 * @return true if this object has no type nor name, false otherwise.
 	 */
 	public boolean isAnonymous()
 	{
@@ -114,7 +117,7 @@ public class ArcheTextObject
 	}
 
 	/**
-	 * Returns true if this object has a type but no name.
+	 * @return true if this object has a type but no name, false otherwise.
 	 */
 	public boolean isDefault()
 	{
@@ -198,8 +201,9 @@ public class ArcheTextObject
 	}
 	
 	/**
-	 * Returns true of this object (and only the).
+	 * Returns true if this object (and only this object) contains a field.
 	 * @param name the name of the field.
+	 * @return true if so, false if not.
 	 */
 	public boolean containsLocal(String name)
 	{
@@ -396,7 +400,7 @@ public class ArcheTextObject
 	}
 	
 	/**
-	 * Returns a field name iterator for this object (only local fields).
+	 * @return a field name iterator for this object (only local fields).
 	 */
 	public Iterator<String> fieldNameIterator()
 	{

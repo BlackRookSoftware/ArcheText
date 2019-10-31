@@ -147,7 +147,7 @@ public class ArcheTextRoot
 	}
 	
 	/**
-	 * Returns all types that this root contains.
+	 * @return all types that this root contains.
 	 */
 	public String[] getTypes()
 	{
@@ -209,6 +209,7 @@ public class ArcheTextRoot
 
 	/**
 	 * Adds an object.
+	 * @param object the object to add.
 	 */
 	public void add(ArcheTextObject object)
 	{
@@ -225,6 +226,8 @@ public class ArcheTextRoot
 	
 	/**
 	 * Removes an object.
+	 * @param object 
+	 * @return true if removed, false if not.
 	 */
 	public boolean remove(ArcheTextObject object)
 	{

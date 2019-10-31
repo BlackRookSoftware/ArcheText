@@ -244,6 +244,8 @@ public final class ArcheTextValue
 	
 	/**
 	 * Equality test.
+	 * @param other the other value.
+	 * @return true if equal, false if not.
 	 */
 	public boolean equals(ArcheTextValue other)
 	{
@@ -263,7 +265,7 @@ public final class ArcheTextValue
 	}
 	
 	/**
-	 * Creates a deep copy of this value.
+	 * @return a deep copy of this value.
 	 */
 	@SuppressWarnings("unchecked")
 	public ArcheTextValue copy()
@@ -309,7 +311,7 @@ public final class ArcheTextValue
 	}
 	
 	/**
-	 * Gets the value type.
+	 * @return the value type.
 	 */
 	public Type getType()
 	{
@@ -317,7 +319,7 @@ public final class ArcheTextValue
 	}
 
 	/**
-	 * Gets the value itself.
+	 * @return the value itself.
 	 */
 	public Object getValue()
 	{
@@ -404,6 +406,7 @@ public final class ArcheTextValue
 	/**
 	 * Negates the value of this value, returning a new one.
 	 * Only works for integers, floats, and strings (strings are set to lower case).
+	 * @return a new value.
 	 * @throws ArcheTextOperationException if the current type is not a correct type.
 	 */
 	public ArcheTextValue negate()
@@ -424,6 +427,7 @@ public final class ArcheTextValue
 	/**
 	 * Returns the logical "not" value of this value, returning a new one.
 	 * Only works for booleans.
+	 * @return a new value.
 	 * @throws ArcheTextOperationException if the current type is not a correct type.
 	 */
 	public ArcheTextValue not()
@@ -440,6 +444,7 @@ public final class ArcheTextValue
 	/**
 	 * Returns the bitwise "not" value of this value, returning a new one.
 	 * Only works for booleans, integers, and floats.
+	 * @return a new value.
 	 * @throws ArcheTextOperationException if the current type is not a correct type.
 	 */
 	public ArcheTextValue bitwiseNot()
@@ -460,6 +465,7 @@ public final class ArcheTextValue
 	/**
 	 * Returns the absolute value of this value, returning a new one.
 	 * Only works for integers, floats, and strings (strings are set to upper case).
+	 * @return a new value.
 	 * @throws ArcheTextOperationException if the current type is not a correct type.
 	 */
 	public ArcheTextValue absolute()
