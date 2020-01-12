@@ -140,7 +140,7 @@ public final class ArcheTextValue
 	 */
 	public <T> T createForType(String memberName, Class<T> type)
 	{
-		if (this == null)
+		if (this.isNull())
 			return Utils.createForType(null, type);
 		
 		Type attype = this.type;
