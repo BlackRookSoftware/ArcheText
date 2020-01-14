@@ -165,7 +165,7 @@ public class ArcheTextRoot
 	/**
 	 * Returns all ArcheTextObjects of a particular type.
 	 * @param type the type name.
-	 * @return
+	 * @return all of the relevant objects found as an array. Never null.
 	 */
 	public ArcheTextObject[] getAllByType(String type)
 	{
@@ -191,7 +191,7 @@ public class ArcheTextRoot
 	 * Returns all ArcheTextObjects of a particular type exported as POJOs.
 	 * @param type the type name.
 	 * @param outputType the output class type.
-	 * @return
+	 * @return all of the relevant objects found as an array. Never null.
 	 */
 	public <T> T[] exportByType(String type, Class<T> outputType)
 	{

@@ -135,8 +135,8 @@ public final class ArcheTextValue
 	/**
 	 * Converts this value to another Java object type.
 	 * @param memberName the name of this value, if a member of another object.
-	 * @param type
-	 * @return
+	 * @param type the type to convert to.
+	 * @return the converted type.
 	 */
 	public <T> T createForType(String memberName, Class<T> type)
 	{
