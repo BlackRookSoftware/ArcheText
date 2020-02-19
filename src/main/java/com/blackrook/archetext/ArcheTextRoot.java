@@ -189,6 +189,7 @@ public class ArcheTextRoot
 
 	/**
 	 * Returns all ArcheTextObjects of a particular type exported as POJOs.
+	 * @param <T> the return type.
 	 * @param type the type name.
 	 * @param outputType the output class type.
 	 * @return all of the relevant objects found as an array. Never null.

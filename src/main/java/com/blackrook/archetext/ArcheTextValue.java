@@ -74,6 +74,7 @@ public final class ArcheTextValue
 	/**
 	 * Creates a new value. 
 	 * Converts primitives and boxed primitives, strings, arrays, and {@link Set}s, and {@link Map}s, and objects.
+	 * @param <T> the object's type.
 	 * @param object the input object.
 	 * @return an {@link ArcheTextValue} to use in {@link ArcheTextObject}.
 	 */
@@ -134,6 +135,7 @@ public final class ArcheTextValue
 
 	/**
 	 * Converts this value to another Java object type.
+	 * @param <T> the return type.
 	 * @param memberName the name of this value, if a member of another object.
 	 * @param type the type to convert to.
 	 * @return the converted type.

@@ -215,6 +215,7 @@ public class ArcheTextObject
 	/**
 	 * Gets the value of a local field.
 	 * The field's value is taken from THIS OBJECT, not its parents.
+	 * @param <T> the return type.
 	 * @param name the name of the field.
 	 * @param outputType the output type to convert to.
 	 * @return the value converted to the desired type.
@@ -257,6 +258,7 @@ public class ArcheTextObject
 	/**
 	 * Gets the value of a field, searching through its lineage
 	 * if it doesn't exist in this one, combining values as necessary.
+	 * @param <T> the return type.
 	 * @param name the name of the field.
 	 * @param outputType the output type to convert to.
 	 * @return the value converted to the desired type.
@@ -373,10 +375,11 @@ public class ArcheTextObject
 	 * For instance, if there is a member on this object called "color", its value
 	 * will be applied via the public field "color" or the setter "setColor()". Public
 	 * fields take precedence over setters.
+	 * @param <T> the return type.
 	 * @param clazz the output class type.
 	 * @return the new object.
 	 */
-	public <T extends Object> T newObject(Class<T> clazz)
+	public <T> T newObject(Class<T> clazz)
 	{
 		T out = Utils.create(clazz);
 		applyToObject(out);
@@ -391,10 +394,11 @@ public class ArcheTextObject
 	 * For instance, if there is a member on this object called "color", its value
 	 * will be applied via the public field "color" or the setter "setColor()". Public
 	 * fields take precedence over setters.
+	 * @param <T> the return type.
 	 * @param object the target object.
 	 * @return the applied object itself.
 	 */
-	public <T extends Object> T applyToObject(T object)
+	public <T> T applyToObject(T object)
 	{
 		return Utils.applyToObject(this, object);
 	}

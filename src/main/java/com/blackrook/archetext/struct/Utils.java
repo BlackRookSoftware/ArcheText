@@ -477,6 +477,7 @@ public final class Utils
 
 	/**
 	 * Exports the values of an object to an ArcheTextObject.
+	 * @param <T> the object's type.
 	 * @param object the object to export.
 	 * @param atext the destination structure.
 	 * @throws ArcheTextExportException if a problem happens during export.
@@ -510,12 +511,13 @@ public final class Utils
 	 * For instance, if there is a member on this object called "color", its value
 	 * will be applied via the public field "color" or the setter "setColor()". Public
 	 * fields take precedence over setters.
+	 * @param <T> the object's type.
 	 * @param atObject the source object.
 	 * @param object the target object.
 	 * @return the applied object itself.
 	 */
 	@SuppressWarnings("unchecked")
-	public static <T extends Object> T applyToObject(ArcheTextObject atObject, T object)
+	public static <T> T applyToObject(ArcheTextObject atObject, T object)
 	{
 		Profile<T> profile = DEFAULT_PROFILEFACTORY.getProfile((Class<T>)object.getClass());
 		Iterator<String> it = atObject.getAvailableFieldNames().iterator();
