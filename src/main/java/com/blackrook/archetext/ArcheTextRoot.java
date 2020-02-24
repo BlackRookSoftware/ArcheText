@@ -23,7 +23,6 @@ import com.blackrook.archetext.struct.Utils;
  */
 public class ArcheTextRoot
 {
-	
 	private static final ArcheTextObject[] NO_OBJECTS = new ArcheTextObject[0];
 	private static final String[] NO_TYPES = new String[0];
 	
@@ -226,8 +225,8 @@ public class ArcheTextRoot
 	}
 	
 	/**
-	 * Removes an object.
-	 * @param object 
+	 * Removes an ArcheText object from this root.
+	 * @param object the object to remove.
 	 * @return true if removed, false if not.
 	 */
 	public boolean remove(ArcheTextObject object)

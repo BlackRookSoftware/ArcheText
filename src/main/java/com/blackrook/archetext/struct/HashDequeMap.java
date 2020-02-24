@@ -1,9 +1,8 @@
 /*******************************************************************************
- * Copyright (c) 2016-2020 Black Rook Software
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the GNU Lesser Public License v2.1
- * which accompanies this distribution, and is available at
- * http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
+ * Copyright (c) 2019-2020 Black Rook Software
+ * 
+ * This program and the accompanying materials are made available under 
+ * the terms of the MIT License, which accompanies this distribution.
  ******************************************************************************/
 package com.blackrook.archetext.struct;
 
@@ -52,7 +51,7 @@ public class HashDequeMap<K, V> extends HashMap<K, Deque<V>>
 
 	/**
 	 * Called to create a new Deque implementation that gets stored in the table.
-	 * By default, this calls <code>new LinkedList<>()</code>.
+	 * By default, this calls <code>new LinkedList&lt;&gt;()</code>.
 	 * @return a new deque.
 	 */
 	protected Deque<V> create()
@@ -218,10 +217,10 @@ public class HashDequeMap<K, V> extends HashMap<K, Deque<V>>
 	 * @see Deque#remove(Object)
 	 * @return {@code true} if an element was removed as a result of this call
 	 * @throws ClassCastException if the class of the specified element
-	 *         is incompatible with the deque
+	 *		is incompatible with the deque
 	 * (<a href="{@docRoot}/java.base/java/util/Collection.html#optional-restrictions">optional</a>)
 	 * @throws NullPointerException if the specified element is null and this
-	 *         deque does not permit null elements
+	 *		deque does not permit null elements
 	 * (<a href="{@docRoot}/java.base/java/util/Collection.html#optional-restrictions">optional</a>)
 	 */
 	public boolean removeValue(K key, V value)
@@ -240,7 +239,7 @@ public class HashDequeMap<K, V> extends HashMap<K, Deque<V>>
 	 * If no corresponding deque, this throws an exception.
 	 * @param key the key.
 	 * @see Deque#pop()
-     * @return the element removed.
+	 * @return the element removed.
 	 * @throws NoSuchElementException if the key does not correspond to an existing deque.
  	 */
 	public V pop(K key)
@@ -259,7 +258,7 @@ public class HashDequeMap<K, V> extends HashMap<K, Deque<V>>
 	 * If no corresponding deque, this returns null.
 	 * @param key the key.
 	 * @see Deque#poll()
-     * @return the element removed, or null if no element.
+	 * @return the element removed, or null if no element.
  	 */
 	public V poll(K key)
 	{

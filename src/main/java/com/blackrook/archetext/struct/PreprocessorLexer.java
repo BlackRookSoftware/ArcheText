@@ -1,9 +1,7 @@
 /*******************************************************************************
- * Copyright (c) 2016-2020 Black Rook Software
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the GNU Lesser Public License v2.1
- * which accompanies this distribution, and is available at
- * http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
+ * Copyright (c) 2019-2020 Black Rook Software
+ * This program and the accompanying materials are made available under 
+ * the terms of the MIT License, which accompanies this distribution.
  ******************************************************************************/
 package com.blackrook.archetext.struct;
 
@@ -60,7 +58,6 @@ public class PreprocessorLexer extends Lexer
 	/** 
 	 * Default includer to use when none specified.
 	 * This includer can either pull from the classpath, URIs, or files.
-	 * <p>
 	 * <ul>
 	 * <li>Paths that start with {@code classpath:} are parsed as resource paths in the current classpath.</li>
 	 * <li>
@@ -70,7 +67,7 @@ public class PreprocessorLexer extends Lexer
 	 * 			<li>As is.</li>
 	 * 		</ul>
 	 * </li>
-	 * </ul> 
+	 * </ul>
 	 */
 	public static class DefaultIncluder implements Includer
 	{
@@ -266,12 +263,12 @@ public class PreprocessorLexer extends Lexer
 			return null;
 		
 		String macro = token.getLexeme().toLowerCase();
-	    if (macroMap.containsKey(macro))
-	    {
-	    	pushStream(getCurrentStreamName() + ":" + macro, new StringReader(macroMap.get(macro).get()));
-	        return nextToken();
-	    }
-	    return token;
+		if (macroMap.containsKey(macro))
+		{
+			pushStream(getCurrentStreamName() + ":" + macro, new StringReader(macroMap.get(macro).get()));
+			return nextToken();
+		}
+		return token;
 	}
 	
 	protected String getInfoLine(String streamName, int lineNumber, String token, String message)

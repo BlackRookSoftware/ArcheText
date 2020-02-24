@@ -21,6 +21,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ATName
 {
-	/** The value name to use. */
+	/** @return the value name to use. */
 	String value();
 }

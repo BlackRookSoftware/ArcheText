@@ -40,11 +40,11 @@ public final class ArcheTextValue
 		FLOAT,
 		/** String type. */
 		STRING,
-		/** Set type. Stored as Hash<ArcheTextValue>. */
+		/** Set type. Stored as Hash&lt;ArcheTextValue&gt;. */
 		SET, 
-		/** List type. Stored as List<ArcheTextValue>. */
+		/** List type. Stored as List&lt;ArcheTextValue&gt;. */
 		LIST,
-		/** Object type for objects, or null. Stored as HashMap<String, ArcheTextObject>, or null. */
+		/** Object type for objects, or null. Stored as HashMap&lt;String, ArcheTextObject&gt;, or null. */
 		OBJECT,
 		/** Object type for null. */
 		NULL;
