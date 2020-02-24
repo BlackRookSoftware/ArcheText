@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","url":"allpackages-index.html"},{"l":"com.blackrook.archetext"},{"l":"com.blackrook.archetext.annotation"},{"l":"com.blackrook.archetext.exception"},{"l":"com.blackrook.archetext.struct"}]
