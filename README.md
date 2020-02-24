@@ -1,17 +1,12 @@
 # Black Rook ArcheText
 
-Copyright (c) 2016-2019 Black Rook Software. All rights reserved.  
+Copyright (c) 2016-2020 Black Rook Software. All rights reserved.  
 [https://github.com/BlackRookSoftware/ArcheText](https://github.com/BlackRookSoftware/ArcheText)
 
 [Latest Release](https://github.com/BlackRookSoftware/ArcheText/releases/latest)  
 [Online Javadoc](https://blackrooksoftware.github.io/ArcheText/javadoc/)  
 [Quick Guide](https://github.com/BlackRookSoftware/ArcheText/blob/master/QUICK-GUIDE.md)
 
-
-### Notice
-
-This library is currently in **EXPERIMENTAL** status. This library's API
-may change many times in different ways over the course of its development!
 
 ### Required Libraries
 
