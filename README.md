@@ -1,6 +1,6 @@
 # Black Rook ArcheText
 
-Copyright (c) 2016-2020 Black Rook Software. All rights reserved.  
+Copyright (c) 2016-2020 Black Rook Software.  
 [https://github.com/BlackRookSoftware/ArcheText](https://github.com/BlackRookSoftware/ArcheText)
 
 [Latest Release](https://github.com/BlackRookSoftware/ArcheText/releases/latest)  
