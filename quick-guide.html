@@ -1,0 +1,234 @@
+<article class="markdown-body entry-content" itemprop="text"><h1><a id="user-content-archetext-quick-guide" class="anchor" aria-hidden="true" href="#archetext-quick-guide"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>ArcheText Quick Guide</h1>
+<p>ArcheText's Structure is similar to most curly-brace language structures,
+except that its members and values are defined differently. The primary function
+of these structures are to define object characteristics and potentially object
+inheritance hierarchies.</p>
+<p>For example, a car might be described as:</p>
+<pre><code>car "Honda Civic"
+{
+	make = "Honda";
+	model = "Civic";
+	type = "Sedan";
+	color = "Black";
+	weight = 2200;
+	weightUnit = "lbs";
+}
+</code></pre>
+<p>Where "car" is the <em>type</em> of structure, and "Honda Civic" is a <em>name</em> for that
+particular structure, which will be important later.</p>
+<p>ArcheType's structure is freeform, so the following is still read the same way as
+the above:</p>
+<pre><code>car 
+"Honda Civic" { make 
+= "Honda"
+; model = 
+"Civic"
+; 
+type = 
+"Sedan"		;
+	color 
+	= 
+	"Black"
+	
+	;
+weight=2200;weightUnit="lbs";}
+</code></pre>
+<p>...but that way isn't nearly as human-readable.</p>
+<p>If you wished, you could create a structure without any fields in it, like so:</p>
+<pre><code>object "Empty";
+</code></pre>
+<p>Just substitute a semicolon (;) instead of the main curly-brace enclosed body.</p>
+<p>Defining another structure with the same name overwrites the first structure.</p>
+<pre><code>pair "a"
+{
+	x = 2;
+	y = 5;
+}
+
+pair "a"
+{
+	y = 3;
+}
+</code></pre>
+<p>After those two structures are parsed, the value of pair "a" is a single field,
+<em>y</em>, that equals <em>3</em>. The field <em>x</em> doesn't exist in it.</p>
+<p>Structures can also not even have a name attached to it like so:</p>
+<pre><code>pair
+{
+	x = 0;
+	y = 0;
+}
+</code></pre>
+<h4><a id="user-content-types-names-and-fields" class="anchor" aria-hidden="true" href="#types-names-and-fields"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Types, Names, and Fields</h4>
+<p>As briefly touched upon, the three main elements of every structure are
+<strong>types</strong>, <strong>names</strong>, and <strong>fields</strong>.</p>
+<p>A <em>Type</em> defines a structure's category. Each type is stored together in an
+ArcheType <em>root</em>, which is the structure that holds all structures. Each
+structure is defined by a <strong>type</strong> and <strong>name</strong>.</p>
+<p>A <em>Name</em> is an identifying name within a category that, together with a
+<strong>type</strong>, defines a unique structure.</p>
+<p>A <em>Field</em> is a member of a structure that contains a value, and this can
+be manipulated by inheritance or other means.</p>
+<p>A <em>Type</em> or <em>Field</em> can only contain alphanumeric and underscore characters.
+They cannot contain spaces, nor can they start with a number, and they cannot
+be surrounded by quotes. The following are valid type/field names:</p>
+<pre><code>x 
+y 
+hello 
+butt1 
+apple456 
+x5564 
+this_is_valid_too      
+</code></pre>
+<p>A <em>Name</em> can be any string, number, or a token that is a valid <em>type</em> or <em>field</em>. If it
+contains any whitespace or other special characters, it MUST be surrounded by quotes.
+Internally, these are all converted to strings, so <em>45</em> is equivalent to "45", as far as
+structure names go. This is VERY important, in terms of inheritance. The following
+are valid names:</p>
+<pre><code>"apple" 
+pear 
+orange 
+_tomato 
+100 
+2.56 
+"green tea"
+</code></pre>
+<h4><a id="user-content-fields-and-values" class="anchor" aria-hidden="true" href="#fields-and-values"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Fields and Values</h4>
+<p>A <em>Field</em> is defined in an object that is assigned a value. Values can have different <em>types</em>,
+which affects how they are interpreted or converted.</p>
+<p><strong>Boolean</strong> - Holds only <em>true</em> and <em>false</em>.</p>
+<pre><code>true
+false
+</code></pre>
+<p><strong>Integer</strong> - Whole numbers, no decimal point. 64-bit precision. Can be expressed as hexadecimal.</p>
+<pre><code>5
+424
+6577
+0xaf44534
+0x8000dad3
+</code></pre>
+<p><strong>Float</strong> - Floating-point decimal numbers. 64-bit precision.</p>
+<pre><code>5.0
+0.5565
+9.5453112
+0.00000004
+</code></pre>
+<p><strong>String</strong> - A quote-surrounded string of characters. Can contain characters escaped using backslashes.</p>
+<pre><code>"apple"
+"pear"
+"this is a string"
+"This has special characters \\ \n \t"
+</code></pre>
+<p><strong>List</strong> - A square bracket-surrounded, comma-separated list of other values. Lists can contain any type and can contain duplicate entries.</p>
+<pre><code>[0, 1, 2, 2, 4, 6]
+["apple", "pear", "orange"]
+[0, 0.2, 5.8, false]
+[[0, 1, 3], 7, [false, true, 6767]]
+</code></pre>
+<p><strong>Set</strong> - An angle-bracket-surrounded, comma-separated list of other values. Sets can contain any type, but cannot contain duplicate entries (duplicates will not be added).</p>
+<pre><code>&lt;0, 1, 2, 2, 4, 6&gt;
+&lt;"apple", "pear", "orange"&gt;
+&lt;0, 0.2, 5.8, false&gt;
+&lt;&lt;0, 1, 3&gt;, 7, [false, true, 6767]&gt;
+</code></pre>
+<p><strong>Object</strong> - A reference or anonymously-typed object, formatted exactly like the body of a structure.</p>
+<pre><code>@{pair "y"}
+{ x = 9; y = 5.6; z = [5, 6, 7] }
+</code></pre>
+<h4><a id="user-content-inheritance" class="anchor" aria-hidden="true" href="#inheritance"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Inheritance</h4>
+<p>If you were to define an ordered pair object like so:</p>
+<pre><code>pair "origin"
+{
+	x = 0;
+	y = 0;
+}
+</code></pre>
+<p>You also could define another pair as such:</p>
+<pre><code>pair "xunit" : pair "origin"
+{
+	x = 1;
+} 
+</code></pre>
+<p>...which only defines a single field, but the ":" (colon) operator defines which
+structure it is inheriting from. So, in the end, these two structures are
+equivalent, value-wise:</p>
+<pre><code>pair "xunit"
+{
+	x = 1;
+	y = 0;
+}
+
+pair "xunit" : pair "origin"
+{
+	x = 1;
+} 
+</code></pre>
+<p>...except one is part of an object hierarchy. In either case, when the fields
+<em>x</em> and <em>y</em> are queried, their values are <em>1</em> and <em>0</em>, respectively.</p>
+<p>You can inherit from multiple structures. If you defined the following
+structures:</p>
+<pre><code>triple "xunit"
+{
+	x = 1;
+}
+
+triple "yunit"
+{
+	y = 1;
+}
+</code></pre>
+<p>You could make an ordered triple (x, y, z) of (1, 1, 1) by defining:</p>
+<pre><code>triple "all ones" : triple "yunit" : triple "xunit" 
+{
+	z = 1;
+}
+</code></pre>
+<p>Every field in a structure does not need to exist in order for inheritance to work.</p>
+<p>Field value priority goes from first defined to last-defined in the inheritance
+clauses (in this example, <em>all ones</em> (defined fields) is searched, then <em>yunit</em>,
+then <em>xunit</em>).</p>
+<p>If you do NOT wish to preserve hierarchy, and would like a structure to be
+<strong>flattened</strong> into its current values, then the first colon should be changed
+to an arrow:</p>
+<pre><code>triple "all ones" &lt;- triple "yunit" : triple "xunit" 
+{
+	z = 1;
+}
+</code></pre>
+<p>This still creates the same structure with the correct values, but the
+hierarchy is lost after parsing.</p>
+<p>Inheritance does not even need to be among like types.</p>
+<h4><a id="user-content-prototyping" class="anchor" aria-hidden="true" href="#prototyping"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Prototyping</h4>
+<p>You can prototype the fields for a type so that you can write an abbreviated
+structure later. Prototype statements look like the following:</p>
+<pre><code>.triple(x, y, z)
+</code></pre>
+<p>The statement must start with a period, then the type, then a parenthesis-wrapped
+list of field identifiers. An object can then be declared like this:</p>
+<pre><code>triple "example" (1, 2, 3)
+</code></pre>
+<p>Which is equivalent to:</p>
+<pre><code>triple "example"
+{
+	x = 1;
+	y = 2;
+	z = 3;
+}
+</code></pre>
+<p>You can even use expressions in them!</p>
+<pre><code>triple "example" (9 - 8, 4 / 2, 3 * 3 / 3)
+</code></pre>
+<p>If you don't specify all of the fields, not all get defined. The following definition:</p>
+<pre><code>triple "example" (1, 2)
+</code></pre>
+<p>Is equivalent to:</p>
+<pre><code>triple "example"
+{
+	x = 1;
+	y = 2;
+}
+</code></pre>
+<h3><a id="user-content-reflection-and-pojo-conversion" class="anchor" aria-hidden="true" href="#reflection-and-pojo-conversion"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Reflection and POJO Conversion</h3>
+<p>ArcheText objects can be applied to other Java objects via reflection. Most common conversions will work from ArcheText Values
+to Java-native ones, including enums!</p>
+</article>
